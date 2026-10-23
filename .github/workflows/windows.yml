@@ -1,0 +1,22 @@
+name: Windows offline validation
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  public-core:
+    runs-on: windows-latest
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-build.txt
+      - name: Verify public source manifest and privacy boundary
+        run: python -B -m public_build.release_guard . --git-checkout
+      - name: Offline regression tests (synthetic only)
+        run: python -B -m public_build.run_tests
+      - name: Actual stdio startup and synthetic PDF output
+        run: python -B -m public_build.verify_product --synthetic-dir scratch/ci-synthetic

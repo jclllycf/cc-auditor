@@ -1,0 +1,12 @@
+{
+  "captured": "2026-10-18",
+  "license_text_source": "SPDX license-list-data + installed distributions",
+  "files": {
+    "GPL-3.0-only.txt": "fb981668c18a279e285fc4d83fba1e836cc84dd4daa73c9697d3cfd2d8aca6e0",
+    "LGPL-3.0-only.txt": "996af0513df21f7496288951c41428a03c174e9e4a9d63665c57d670f845ccb1",
+    "pyinstaller-COPYING.txt": "0598064c7d2718e38d7914a7d08343b2fa008e3bea9ebba2aa7a6ffa5900dd64",
+    "pyside6_essentials-LicenseRef-Qt-Commercial.txt": "4f54763ac0fe2abd8f7f8d8fe370a94a08ebf84786aa0b91045bd6628deb08a3",
+    "Python-LICENSE.txt": "e502c6b880ff58d614901495a9009c136539cd0b1e2a2abb8fc00b934c203419",
+    "shiboken6-LicenseRef-Qt-Commercial.txt": "4f54763ac0fe2abd8f7f8d8fe370a94a08ebf84786aa0b91045bd6628deb08a3"
+  }
+}

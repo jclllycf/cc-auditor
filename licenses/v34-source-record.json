@@ -1,0 +1,34 @@
+{
+  "retrieved": "2026-10-21",
+  "package_index": "https://pypi.org",
+  "packages": [
+    "reportlab==4.4.10",
+    "Pillow==13.0.0",
+    "charset-normalizer==3.5.2"
+  ],
+  "runtime_network": "The renderer only accepts local text and pinned fonts; no URL or image loading interface is exposed.",
+  "licenses": [
+    {
+      "dependency": "charset_normalizer-3.5.2",
+      "license_file": "v34-charset_normalizer-3.5.2-LICENSE",
+      "sha256": "18577485d3704f1a479ded8e573c0976cfed315fd2fd17983fa988da4c2f70d1"
+    },
+    {
+      "dependency": "pillow-13.0.0",
+      "license_file": "v34-pillow-13.0.0-LICENSE",
+      "sha256": "988ffe8ab3480b0f4e9a0ab2702bffd73d9fb6b47198043fb3ba101a62fac236"
+    },
+    {
+      "dependency": "reportlab-4.4.10",
+      "license_file": "v34-reportlab-4.4.10-LICENSE",
+      "sha256": "ef831761646313921375fc2cb888e8eeaf7da213d0b92852c10c42f3a0b4d138"
+    }
+  ],
+  "reportlab_local_patches": {
+    "notice": "v34-reportlab-local-patches.md",
+    "files": {
+      "reportlab/__init__.py": "e4b224a3c6dfc573e6e2e08453ecac21274895ccf4714c78c5eb8d629d8f76af",
+      "reportlab/rl_config.py": "4960957787d6aff2fdd0b0b0ca746b091d7ca8a90bd2016f5eabe4336dd3b789"
+    }
+  }
+}

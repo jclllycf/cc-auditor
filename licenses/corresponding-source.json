@@ -1,0 +1,14 @@
+[
+  {
+    "name": "qtbase-everywhere-src-6.12.0.tar.xz",
+    "url": "https://download.qt.io/archive/qt/6.12/6.12.0/submodules/qtbase-everywhere-src-6.12.0.tar.xz",
+    "sha256": "a951bd163c7b80fc6b8c88d7668fb56abf91c152373e13c10666763238131307",
+    "size": 51220268
+  },
+  {
+    "name": "pyside-setup-everywhere-src-6.12.0.tar.xz",
+    "url": "https://download.qt.io/official_releases/QtForPython/pyside6/PySide6-6.12.0-src/pyside-setup-everywhere-src-6.12.0.tar.xz",
+    "sha256": "099c1a597cf33c1b000e11cf68a0b82d216fb802bf81726efc720394f10c7751",
+    "size": 18211772
+  }
+]
