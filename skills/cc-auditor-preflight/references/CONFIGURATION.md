@@ -1,6 +1,6 @@
 # Skill 与 MCP 配置
 
-适用：在**这台 Windows** 上运行的非 Claude Agent。只用 EXE 的用户可跳过整页。本文按 2026-10-22 查询的官方 Codex / Gemini CLI 格式编写；配置语法核对与某个 Agent 版本已实机验收是不同事实，实际测试范围见 Release 回执。
+适用：**任何能获得用户授权并访问本机 Windows Toolkit 的 Agent**，不限定 Codex、Gemini 或其他特定平台。需根据该 Agent 实际支持的本机 MCP/工具机制配置；纯云端 Agent 不会因为读取 Skill 就自动获得本机执行权限。只用 EXE 的用户可跳过整页。下文出现的具体客户端配置均为**技术示例，而非支持范围限制或已实测保证**；实际测试范围以 Release 回执为准。
 
 ## 两个组件分别做什么
 
@@ -12,7 +12,19 @@
 
 先完整安装 Toolkit，再安装整个 Skill 文件夹（包括 `references`）。不要只复制 `SKILL.md`。不需要 Claude API Key、MCP OAuth、HTTP 服务器或公开网络端口。云端或 WSL 中的 Agent 不能直接把本地 Windows 路径当成自己的执行环境；本版本没有自动远程接入安装流程。
 
-## Codex CLI / 本机 Codex 配置
+## 通用 Agent 接入原则
+
+1. 安装完整 Windows Toolkit（EXE 和内部依赖不可分开）。
+2. 在 Agent 的 Skills/知识规则机制中安装整个 `skills/cc-auditor-preflight`，或按其支持方式读取该 Skill 指导文件。
+3. 在 Agent 的本机 MCP/工具配置中注册 **stdio 服务**：真实 EXE 绝对路径作为命令；唯一启动参数 `--mcp`。
+4. 确认你的 Agent 允许启动本机进程，并为授权与深测保留足够工具执行时间。任何额外的 Agent 审批和 Toolkit 原生授权卡都不能互相替代。
+5. 重新加载技能与工具；先调用 `audit_capabilities` 测试连通，再按 Skill 启动本人批准的一次扫描。
+
+每个 Agent 的名称、设置位置、超时单位和配置格式都可能不同，**不应把本页的 TOML/JSON 示例当成通用协议格式**。对于仅在远程服务运行的 Agent，需有明确授权的本机连接器才能访问这个 Windows 工具。
+
+## 部分 Agent 的配置语法示例（仅参考）
+
+### 示例 A：Codex CLI 使用的 TOML 配置
 
 把以下一项合并到 `%USERPROFILE%\.codex\config.toml`；若已设置自定义 `CODEX_HOME`，修改该账户实际使用的配置。保留其它已有项，先备份，不覆盖整份文件。
 
@@ -32,7 +44,7 @@ TOML 单引号字符串中的反斜杠不需双写。`tool_timeout_sec` 给真�
 
 官方格式：[Codex MCP](https://developers.openai.com/codex/mcp)、[Codex Skills](https://developers.openai.com/codex/skills)。
 
-## Gemini CLI
+### 示例 B：Gemini CLI 使用的 JSON 配置
 
 将以下服务器项合并到 `%USERPROFILE%\.gemini\settings.json` 的 `mcpServers`。已有 JSON 配置不能被整个替换；注意逗号和双反斜杠。
 
@@ -57,7 +69,7 @@ TOML 单引号字符串中的反斜杠不需双写。`tool_timeout_sec` 给真�
 
 先只要求 `audit_capabilities`，确认连通后再要求使用该 Skill 做一次预检。官方格式：[Gemini MCP](https://geminicli.com/docs/tools/mcp-server/)、[Gemini Skills](https://geminicli.com/docs/cli/skills/)。
 
-## 其它支持 stdio MCP 的本机 Agent
+## 其它 Agent：以客户端实际支持的 MCP/Tool 接口为准
 
 选择“本地命令 / stdio”类型，填 EXE 的绝对路径、参数 `--mcp`，将单次工具超时设为足以完成本机授权和扫描的时长（建议 20 分钟）。保留工具审批。
 
