@@ -57,7 +57,7 @@ class RuntimeSanitizerTests(unittest.TestCase):
 
     def test_prevalidation_does_not_partially_modify_staging(self):
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
+            root = Path(directory).resolve()
             originals = {}
             for relative in TARGETS:
                 path = root / relative
@@ -74,7 +74,7 @@ class RuntimeSanitizerTests(unittest.TestCase):
 
     def test_owned_staging_receipt_has_no_absolute_paths_and_verifies(self):
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
+            root = Path(directory).resolve()
             for relative in TARGETS:
                 path = root / relative
                 path.parent.mkdir(exist_ok=True, parents=True)
@@ -91,7 +91,7 @@ class RuntimeSanitizerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "never_sanitize_source"):
             sanitize_public_runtime(Path(__file__).resolve().parents[1])
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
+            root = Path(directory).resolve()
             (root / ".git").mkdir()
             with self.assertRaisesRegex(ValueError, "before_git"):
                 sanitize_public_runtime(root)
@@ -113,3 +113,4 @@ class RuntimeSanitizerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

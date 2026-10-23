@@ -2632,7 +2632,7 @@
     },
     {
       "path": "public_build/test_sanitize_runtime.py",
-      "sha256": "7dcbfd4d14f4955b38e133e023e3d9f4f2c15561864d4ae5d562c1b51447b1a4"
+      "sha256": "630056b6589370e094838a07e4c652fcf4d14d67265921a254b840a6c065dce2"
     },
     {
       "path": "public_build/verify_product.py",
