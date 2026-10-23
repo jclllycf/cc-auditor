@@ -12,15 +12,15 @@ CC Auditor 面向通常尚未接触 Claude 的 Windows 用户，在获得本人�
 
 1. **下载安装包**：从 [v3.6.0-beta.1 Release](https://github.com/jclllycf/cc-auditor/releases/tag/v3.6.0-beta.1) 下载 Windows x64 ZIP 和 SHA256SUMS.txt。不要下载 GitHub 自动生成的 Source code ZIP 来运行。
 2. **完整解压**：例如解压为 `C:\Tools\CC-Auditor\CC_Auditor\`，确保同目录有 `CC_Auditor.exe`、`_internal` 和 `skills`。先阅读 [Windows 安装步骤](INSTALL_WINDOWS_ZH.md)。
-3. **连接 Agent**：选择本机 Codex CLI 或 Gemini CLI，按照 [Agent 图文式文字步骤](AGENT_QUICKSTART_ZH.md) 复制 Skill 文件夹并填写一次 MCP 配置。Agent 在云端运行不等于能直接读取你这台 Windows。
+3. **连接你的 Agent**：使用你熟悉的、能够访问本机 Windows 工具的 Agent，按照 [通用 Agent 新手教程](AGENT_QUICKSTART_ZH.md) 安装 Skill，并将本地 EXE 注册为 MCP 工具；具体配置以该 Agent 支持的方式为准。不限某一品牌或命令行产品，纯云端 Agent 需另有经授权的本机执行连接。
 4. **复制下面的完整中文指令给 Agent**；然后由你自己点击 Windows 原生授权卡，Agent 不能代替批准。
 5. **看报告**：Agent 应读回四端健康分、主要问题与 PDF 所在路径；完整报告仍只保存在本机。
 
-**直接复制给本机 Agent：**
+**直接复制给你使用的 Agent（需具备本机 MCP 工具连接）：**
 
 > 请使用 $cc-auditor-preflight Skill 和本机 cc-auditor-preflight MCP，为这台 Windows 执行一次 Claude 首次使用前环境深度预检。先调用 audit_capabilities 检查工具版本，再调用 prepare_deep_preflight，使用它返回的 scan_id 调用 run_approved_deep_preflight。我会亲自阅读并批准弹出的原生授权卡；你不能替我批准。请在已授权范围内自动完成检测，不要访问 Claude/Anthropic 官方服务，不修改代理、浏览器设置或系统配置。完成后用中文总结 Desktop、Web、CLI、API 四端环境健康分及是否适合开始准备、已确认问题、需补证项目，并给出生成的 PDF 本地路径。不要上传完整原始证据、Cookie、密钥或私人报告。
 
-**[从零开始的 Agent 教程（包含 Codex、Gemini CLI、验证方法、常见报错）](AGENT_QUICKSTART_ZH.md)**
+**[从零开始的通用 Agent 教程：安装、连接、复制任务、授权与排错](AGENT_QUICKSTART_ZH.md)**
 
 ## 备用：不用 Agent，直接完成扫描
 
