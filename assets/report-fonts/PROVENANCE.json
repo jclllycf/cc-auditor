@@ -1,0 +1,17 @@
+{
+  "project": "Google Fonts / Noto Sans SC",
+  "commit": "45e3d5269e4a17d823f6d84470bc084dc5ae46f6",
+  "source": "https://github.com/google/fonts/tree/45e3d5269e4a17d823f6d84470bc084dc5ae46f6/ofl/notosanssc",
+  "font_source_name": "NotoSansSC[wght].ttf",
+  "font_sha256": "a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da",
+  "license": "SIL Open Font License 1.1, bundled unmodified as OFL.txt",
+  "license_sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9",
+  "retrieved_date": "2026-10-21",
+  "runtime_network": false,
+  "system_font_installation": false,
+  "derivative_build": "scripts/build_report_font_v34.py, fontTools 4.65.0; static weights 400/700; private family name; BMP format-4 cmap; radical and compatibility ideograph aliases removed for exact PDF text extraction",
+  "derivatives": {
+    "CCAuditorSansSC-Regular.ttf": "4e6463dd7ad9740733a04f2e0c6f028b10f1e182af0e835a8f25bd393f80a485",
+    "CCAuditorSansSC-Bold.ttf": "9a8ae5cdc3edb882de72e040b4fa1bc04bc4bf7b8eddd2e92429bf7edc7d5f66"
+  }
+}

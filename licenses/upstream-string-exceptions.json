@@ -1,0 +1,117 @@
+{
+  "schema": "cc-auditor-reviewed-upstream-strings/1",
+  "rules": "Only private_home may be excepted by exact immutable file hash. Secret rules never excepted. Code filenames always checked.",
+  "files": [
+    {
+      "path": "_internal/base_library.zip",
+      "sha256": "f6ccb096f8b2da60606ed32f6ef837e4ea8845723786674f41b6244a3e2c6aa1",
+      "rules": [
+        "private_home"
+      ],
+      "reason": "decompressed separately; only known CPython ntpath splitroot documentation example"
+    },
+    {
+      "path": "_internal/python312.dll",
+      "sha256": "9a0e3435aaa680d868150f87ab3e388ad2eebc22f87e036155c7b4eda8cd2120",
+      "rules": [
+        "private_home"
+      ],
+      "reason": "CPython 3.12.10 original runtime; upstream build/debug path strings"
+    },
+    {
+      "path": "_internal/PySide6/Qt6Core.dll",
+      "sha256": "f57ed38afd95d0306cca9d88d997f639f70c7628a4f1f064eae291d579487121",
+      "rules": [
+        "private_home"
+      ],
+      "reason": "PySide6-Essentials 6.12.0 wheel RECORD matched; upstream build/debug path strings"
+    },
+    {
+      "path": "_internal/PySide6/Qt6Gui.dll",
+      "sha256": "abd20026e190e8cc69667d1bea042db05cd353cc05e7da74b063c20b7da3f6cd",
+      "rules": [
+        "private_home"
+      ],
+      "reason": "PySide6-Essentials 6.12.0 wheel RECORD matched; upstream build/debug path strings"
+    },
+    {
+      "path": "_internal/PySide6/Qt6Network.dll",
+      "sha256": "1c7c393b264ae78f4dee211656377a086c4be714bf768d3135f94f11c1d0be61",
+      "rules": [
+        "private_home"
+      ],
+      "reason": "PySide6-Essentials 6.12.0 wheel RECORD matched; upstream build/debug path strings"
+    },
+    {
+      "path": "_internal/PySide6/Qt6Widgets.dll",
+      "sha256": "2f62cbe2869fff4e20df7369c2786e1ec7ec290d5a63d1371b7f70cf06909c3f",
+      "rules": [
+        "private_home"
+      ],
+      "reason": "PySide6-Essentials 6.12.0 wheel RECORD matched; upstream build/debug path strings"
+    },
+    {
+      "path": "_internal/PySide6/plugins/generic/qtuiotouchplugin.dll",
+      "sha256": "8565656807db29cfb6170e6803181f24e0bed3aa1b14684d29694e375cc5ee96",
+      "rules": [
+        "private_home"
+      ],
+      "reason": "PySide6-Essentials 6.12.0 wheel RECORD matched; upstream build/debug path strings"
+    },
+    {
+      "path": "_internal/PySide6/plugins/networkinformation/qnetworklistmanager.dll",
+      "sha256": "2bd047476183c76004221fb44adb7ada9b4b6ce5c2929d63ff67a5305b430f1a",
+      "rules": [
+        "private_home"
+      ],
+      "reason": "PySide6-Essentials 6.12.0 wheel RECORD matched; upstream build/debug path strings"
+    },
+    {
+      "path": "_internal/PySide6/plugins/platforms/qwindows.dll",
+      "sha256": "ddd5cf6a96f058cfafcbc901ddeb5df010d755f0716beacfb557f8b27b733afe",
+      "rules": [
+        "private_home"
+      ],
+      "reason": "PySide6-Essentials 6.12.0 wheel RECORD matched; upstream build/debug path strings"
+    },
+    {
+      "path": "_internal/PySide6/plugins/styles/qmodernwindowsstyle.dll",
+      "sha256": "74d4c47b56a942afb3723bb105900501bb8f91a46a8b592fa722cc4fdb2ce9bf",
+      "rules": [
+        "private_home"
+      ],
+      "reason": "PySide6-Essentials 6.12.0 wheel RECORD matched; upstream build/debug path strings"
+    },
+    {
+      "path": "_internal/PySide6/plugins/tls/qcertonlybackend.dll",
+      "sha256": "87574d467b6f9640a15e37bf4183179c6a7cefc4dc84346b8f4cffb989cf1e12",
+      "rules": [
+        "private_home"
+      ],
+      "reason": "PySide6-Essentials 6.12.0 wheel RECORD matched; upstream build/debug path strings"
+    },
+    {
+      "path": "_internal/PySide6/plugins/tls/qopensslbackend.dll",
+      "sha256": "94b3492bc4087da2818e2749a5a03f7d810611b2e3648bd8d580ad087363046f",
+      "rules": [
+        "private_home"
+      ],
+      "reason": "PySide6-Essentials 6.12.0 wheel RECORD matched; upstream build/debug path strings"
+    },
+    {
+      "path": "_internal/PySide6/plugins/tls/qschannelbackend.dll",
+      "sha256": "2915a86a2531e65fd4905f0cc1c8dc353772a4f52aeda5100725dd9249db54d1",
+      "rules": [
+        "private_home"
+      ],
+      "reason": "PySide6-Essentials 6.12.0 wheel RECORD matched; upstream build/debug path strings"
+    }
+  ],
+  "code_modules": [
+    {
+      "module": "ntpath.pyc",
+      "sha256": "6a5a682fedce04941adea5d60c635e5889b6ee5f62240330a9e9f2f466844d3a",
+      "reason": "CPython 3.12.10 ntpath splitroot docstring example; not a real user path"
+    }
+  ]
+}

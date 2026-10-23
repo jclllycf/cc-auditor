@@ -1,0 +1,50 @@
+{
+  "status": "sanitized",
+  "schema": "cc-auditor-public-runtime-sanitization/1",
+  "error_code": "legacy_active_probe_disabled_in_public_preflight",
+  "target_count": 5,
+  "files": [
+    {
+      "path": "cc_auditor/collectors.py",
+      "functions": [
+        "tls_connectivity"
+      ],
+      "modified_functions": [
+        "tls_connectivity"
+      ],
+      "input_sha256": "815bb1342082a1fd58dafe2efb3ac412c3ae854e897e6db908ffb10f7d576345",
+      "output_sha256": "10d2a7cfb50f46e1eb50c2ad0085f2d33d8600fff48d0ab0060ed8f99101d633",
+      "changed": true
+    },
+    {
+      "path": "cc_auditor/diagnostics.py",
+      "functions": [
+        "route_probe",
+        "routes"
+      ],
+      "modified_functions": [
+        "route_probe",
+        "routes"
+      ],
+      "input_sha256": "ab30f492ada71fac515aa7e591c04702295e15814dc8b2f889758c2e1ddc823e",
+      "output_sha256": "431ff47efa612e4d8367d169d0e88eeff99ecfd78fed12fe1dacfd6376d7063e",
+      "changed": true
+    },
+    {
+      "path": "cc_auditor/environment_probes.py",
+      "functions": [
+        "network_checks",
+        "_network_child"
+      ],
+      "modified_functions": [
+        "_network_child",
+        "network_checks"
+      ],
+      "input_sha256": "98eb67c96064930ff44bc901b80bfaa68264e7dd1a7e1801e718a14ae28a3c68",
+      "output_sha256": "3a635ccd51c79001c60a86e9c3776db6a60194405bdb50679118256ba694a26d",
+      "changed": true
+    }
+  ],
+  "network_operations": 0,
+  "scope": "listed_legacy_active_probe_function_bodies_only"
+}

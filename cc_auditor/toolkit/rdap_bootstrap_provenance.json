@@ -1,0 +1,6 @@
+{
+  "source": "https://data.iana.org/rdap/ipv4.json",
+  "retrieved": "2026-10-18",
+  "sha256": "f6ad30d1ebbd16fed6121e1eb54ae7db86edbf5e425345a040aa7893b0447d78",
+  "use": "IPv4 only, pinned public IANA data, no runtime download; selected RIR must also be allowlisted"
+}
