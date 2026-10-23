@@ -3,6 +3,10 @@
   "version": "3.6.0-beta.1",
   "files": [
     {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
       "path": ".github/workflows/windows.yml",
       "sha256": "4caa75f3ba1435f8d24c4c8bee5259abf48912b7da377c004bee63c2278bcce5"
     },
