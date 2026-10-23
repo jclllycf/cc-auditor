@@ -8,7 +8,7 @@
     },
     {
       "path": ".github/workflows/windows.yml",
-      "sha256": "4caa75f3ba1435f8d24c4c8bee5259abf48912b7da377c004bee63c2278bcce5"
+      "sha256": "4059adef2cfd2fc4d0a81796796a42bcf668051114ee19f928d26552463f0d89"
     },
     {
       "path": ".gitignore",
