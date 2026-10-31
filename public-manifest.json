@@ -8,7 +8,7 @@
     },
     {
       "path": ".github/workflows/windows.yml",
-      "sha256": "4caa75f3ba1435f8d24c4c8bee5259abf48912b7da377c004bee63c2278bcce5"
+      "sha256": "4059adef2cfd2fc4d0a81796796a42bcf668051114ee19f928d26552463f0d89"
     },
     {
       "path": ".gitignore",
@@ -2580,7 +2580,7 @@
     },
     {
       "path": "MCP_CONFIGURATION_ZH.md",
-      "sha256": "8d516a85af36abc44387cb9e0b293a5e549c926a4eb570964388039da51651c5"
+      "sha256": "aa860bff6ae9dd80df39a20aa197fa64545b0c163e2a8fa66b7eda32cbe2d525"
     },
     {
       "path": "NOTICES.md",
@@ -2656,7 +2656,7 @@
     },
     {
       "path": "skills/cc-auditor-preflight/references/CONFIGURATION.md",
-      "sha256": "8d516a85af36abc44387cb9e0b293a5e549c926a4eb570964388039da51651c5"
+      "sha256": "aa860bff6ae9dd80df39a20aa197fa64545b0c163e2a8fa66b7eda32cbe2d525"
     },
     {
       "path": "skills/cc-auditor-preflight/SKILL.md",
