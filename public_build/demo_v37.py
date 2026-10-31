@@ -13,6 +13,8 @@ def main():
     if hasattr(sys.stdout,'reconfigure'):sys.stdout.reconfigure(encoding='utf-8')
     from tests_toolkit.test_v34_clean_preuse import clean_user
     from tests_toolkit.test_v37_evidence import observation, NOW, LATER
+    from tests_toolkit.test_v37_browser_details import fixture as browser_fixture
+    from cc_auditor.toolkit.browser_details_v37 import sanitize as sanitize_details
     from cc_auditor.toolkit.evidence_completion_v33 import attach
     from cc_auditor.toolkit.preflight_v3 import save, VERSION
     from cc_auditor.toolkit.evidence_v37 import analyze
@@ -29,6 +31,10 @@ def main():
         p['dynamic_result'].update(checked_at_utc=NOW, profile_binding='user_attested_targeted_launch_browser_pid')
     before['approval']['scopes'] = list(set(before['approval']['scopes']) | {'independent_network'})
     before['approval']['profiles'] = [p['profile_key'] for p in before['profiles']]
+    before['approval']['scopes'] = list(set(before['approval']['scopes']) | {'browser_dynamic','browser_feature_details'})
+    for p in before['profiles']:
+        value=browser_fixture();value['audio']={'status':'unsupported'}
+        p['dynamic_result']['data']['browser_details_v37']=sanitize_details(value)
     dns = observation('dns', id='profile-a-dns', data={'authoritative_receipt': True, 'policy_bound': True,
                        'expected_resolver_regions':['US'], 'observed_resolver_regions':['US','CN']})
     before['diagnostic_observations_v37'] = [dns,

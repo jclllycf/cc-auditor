@@ -1,6 +1,6 @@
 # CC Auditor — Pre-use Windows environment check for Claude
 
-This branch is the **v3.7.0-dev1 evidence-diagnostics development candidate**, with scoped findings, conservative snapshot comparisons and read-only remediation previews. Source users can run `preview-v37.cmd` for a synthetic offline demo. The Windows downloads below remain v3.6; a new v3.7 executable has not been released. See [development usage](docs/upgrade-v37/USAGE_ZH.md).
+This branch is the **v3.7.0-dev1 evidence-diagnostics development candidate**, with scoped findings, conservative snapshot comparisons and read-only remediation previews. Source users can run `preview-v37.cmd` for a synthetic offline demo. Opt-in browser rendering/permission details and a [50-item EnvGuardCC capability crosswalk](docs/upgrade-v37/COVERAGE_ZH.md) are included; full third-party parity is not claimed. The Windows downloads below remain v3.6; a new v3.7 executable has not been released. See [development usage](docs/upgrade-v37/USAGE_ZH.md).
 
 **Recommended: run the local Agent Skill + MCP Toolkit.** A standalone Windows scanner is available as a fallback.
 

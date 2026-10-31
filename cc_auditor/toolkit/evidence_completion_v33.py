@@ -105,9 +105,14 @@ def complete(report,topology,discovery,runtime,program,private,records,cancelled
         key=p['profile_key'];net=((p.get('dynamic_result') or {}).get('data') or {}).get('independent_network') or {}
         required_network=('ipv4','dns','stun')+(('ipv6',) if (topology or {}).get('vpn_and_tun_topology',{}).get('system_has_ipv6_default_route') is True else ())
         needs=not p.get('dynamic_profile_checked') or 'independent_network' in scopes and any(net.get(k,{}).get('status')!='observed' for k in required_network)
+        if 'browser_feature_details' in scopes:
+            from .browser_details_v37 import GROUPS
+            detail=((p.get('dynamic_result') or {}).get('data') or {}).get('browser_details_v37') or {}
+            needs=needs or any(detail.get(k,{}).get('status') in (None,'failed','timeout') for k in GROUPS)
+            needs=needs or any(v in ('failed','timeout') for v in detail.get('permissions',{}).get('values',{}).values())
         if key not in report['approval'].get('profiles',[]) or not needs:continue
         first=copy.deepcopy(p.get('dynamic_result'));p['v33_attempt_history']=[{'attempt':1,'result':first}]
-        d=attempt('profile:'+key,'web','browser_dynamic',35,lambda r=records[key]:profiles_v3.dynamic_profile(r,timeout=30,independent_network='independent_network' in scopes))
+        d=attempt('profile:'+key,'web','browser_dynamic',35,lambda r=records[key]:profiles_v3.dynamic_profile(r,timeout=30,independent_network='independent_network' in scopes,browser_feature_details='browser_feature_details' in scopes))
         attempts[-1]['attempt']=2
         if d:
             p['v33_attempt_history'].append({'attempt':2,'result':copy.deepcopy(d)})

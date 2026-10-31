@@ -10,6 +10,7 @@ SCOPES={'local_system':'本机系统、代理/路由、进程身份（不因 Cla
     'proxy_config':'本地代理配置/已运行内核已知启动参数、管道名称元数据与只读接口；不提权，密钥不返回模型',
     'browser_static':'真实日常 Profile 的指定诊断键与扩展权限；不读 Cookie/历史/密码',
     'browser_dynamic':'已打开的日常 Profile 的自有 127.0.0.1 页面；仅工具实验键读写并清理',
+    'browser_feature_details':'可选浏览器详细特征：仅已选日常 Profile 自有环回页的 12 个固定字体候选指标、Emoji/Canvas 像素统计、WebGL 厂商/渲染器、4096 帧离线音频能力和此临时 origin 的权限状态。无稳定指纹哈希，不枚举本机字体/媒体设备，不请求定位/摄像头/麦克风，不播放声音；原始细节只入本机报告，Agent 默认只收到状态。须同时批准日常浏览器工具页实测。',
     'neutral_network':'向固定中立测点查询出口；对方及 Agent 云端可能收到最小化网络信息',
     'existing_connections':'已有 Claude/浏览器连接元数据，同一内核最多两次有界快照；不启动/刷新/登录客户端',
     'independent_network':'独立实测：系统/浏览器 DNS、IPv4/IPv6、STUN UDP、真实浏览器 TLS/HTTP2/JA4；会向下列接收端暴露本次 IP 与协议元数据',
@@ -46,6 +47,7 @@ class Broker:
             if not set(scopes)<=set(manifest['requested_scopes']):raise PermissionError('scope_mismatch')
             if not set(decision['profiles'])<={p['profile_key'] for p in manifest['profiles']}:raise PermissionError('profile_mismatch')
             if decision['profiles'] and 'browser_dynamic' not in scopes:raise PermissionError('profile_scope_missing')
+            if 'browser_feature_details' in scopes and ('browser_dynamic' not in scopes or not decision['profiles']):raise PermissionError('browser_details_scope_missing')
             record['state']='consumed'
         from .fixed_risk_v33 import declarations
         declared=declarations(decision.get('declarations'))
@@ -81,7 +83,7 @@ def _native_consent(manifest):
     area=QScrollArea();area.setWidgetResizable(True);w=QWidget();body=QVBoxLayout(w);area.setWidget(w);layout.addWidget(area)
     fields={}
     all_scopes=QCheckBox('勾选全部列明检测范围（可逐项取消；仍需下方确认）');body.addWidget(all_scopes)
-    scope_titles={'local_system':'本机系统与运行时候选','proxy_config':'代理软件、运行配置与控制接口','browser_static':'日常浏览器静态诊断','browser_dynamic':'日常浏览器工具页实测','neutral_network':'中立 IP / 归属 / 路由 / 声誉查询','existing_connections':'已有客户端连接元数据（可选研究）','independent_network':'独立 DNS / 双栈 / UDP / 浏览器 TLS 测点','browser_region':'Windows 与浏览器地区参考','program_context':'系统环境与可选应用资料自动补证'}
+    scope_titles={'browser_feature_details':'浏览器详细渲染与权限特征（可选）','local_system':'本机系统与运行时候选','proxy_config':'代理软件、运行配置与控制接口','browser_static':'日常浏览器静态诊断','browser_dynamic':'日常浏览器工具页实测','neutral_network':'中立 IP / 归属 / 路由 / 声誉查询','existing_connections':'已有客户端连接元数据（可选研究）','independent_network':'独立 DNS / 双栈 / UDP / 浏览器 TLS 测点','browser_region':'Windows 与浏览器地区参考','program_context':'系统环境与可选应用资料自动补证'}
     for key in manifest['requested_scopes']:
         c=QCheckBox(scope_titles[key]);c.setChecked(key in ('local_system','proxy_config','browser_static'));body.addWidget(c);fields[key]=c
         description=QLabel(SCOPES[key]);description.setWordWrap(True);description.setStyleSheet('color:#526873;margin-left:23px;margin-bottom:7px;');body.addWidget(description)
@@ -125,6 +127,8 @@ def _native_consent(manifest):
     note=QLabel('以上均为用户自愿声明，不是自动定位。只记录地区代码/类别，不填姓名、卡号、账号、完整地址或密码。本机候选运行时/PATH 元数据在“本机系统”范围内，不会运行 Claude。地区配置差异不会自动扣分。');note.setWordWrap(True);body.addWidget(note)
     validation=QLabel('');validation.setWordWrap(True);validation.setStyleSheet('color:#a13030');layout.addWidget(validation)
     def confirm():
+        if fields.get('browser_feature_details',QCheckBox()).isChecked() and (not fields.get('browser_dynamic',QCheckBox()).isChecked() or not any(c.isChecked() for item,c in profile_boxes)):
+            validation.setText('详细浏览器特征需要同时允许工具页实测，并选择至少一个已打开的日常档案。');return
         if any(c.isChecked() for item,c in profile_boxes) and not fields.get('browser_dynamic',QCheckBox()).isChecked():
             validation.setText('已选择动态检测档案：请同时允许“日常浏览器工具页实测”，或取消档案勾选。');return
         if not any(c.isChecked() for c in planned.values()):

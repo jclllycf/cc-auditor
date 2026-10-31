@@ -16,6 +16,10 @@ BASELINE = '48780af8525c73e67b9502de115e6dc4caeabfc3'
 ADDITIONS = (
     'AGENT_QUICKSTART_ZH.md',
     'cc_auditor/toolkit/address_semantics.py',
+    'cc_auditor/toolkit/browser_details_v37.py',
+    'cc_auditor/toolkit/coverage_v37.py',
+    'tests_toolkit/test_v37_browser_details.py',
+    'docs/upgrade-v37/COVERAGE_ZH.md',
     'cc_auditor/toolkit/effective_policy_v37.py',
     'cc_auditor/toolkit/evidence_v37.py',
     'cc_auditor/toolkit/review_v37.py',

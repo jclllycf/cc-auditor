@@ -4,6 +4,9 @@
 
 ## v3.7.0-dev1 · 本地开发候选
 
+- 新增单独原生授权的固定字体候选、Emoji/Canvas 渲染、WebGL、离线 Audio、临时 origin 权限及 Fetch Metadata；仅有限特征，不生成稳定指纹哈希、不影响旧健康分。
+- 增加 EnvGuardCC 50 个配置 ID 的功能映射、明确未实现/零接触排除项，以及 MCP coverage 视图和 PDF/HTML 采样状态。
+
 - 将两轮现场复盘转为证据契约和 C01–C34 合成负例；确认故障、环境参考和缺失证据分别展示。
 - 特殊地址分类不依赖 Python 版本变化的 `is_private`；区分 Benchmarking、CGNAT、文档地址、私网、mDNS 与公网样本。
 - 保留 ICE 完成/失败及候选分类，完整零候选不冒充取得 STUN 回显；重试保留原始样本时间。

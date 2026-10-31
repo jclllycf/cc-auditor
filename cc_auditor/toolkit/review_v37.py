@@ -137,6 +137,14 @@ def report_section(diagnostic):
                        e(r['explanation_zh']) + '<br>视点 ' + e(r['vantage']) + ' / ' + e(r['scope']['profile_key']) +
                        '；来源 ' + e(r['source_kind']) + '；测量态 ' + e(r['measurement_mode']) +
                        '<br>时间 ' + e(str(r['captured_at_utc'])) + '；证据 ' + r['evidence_sha256'][:16] + '</p>')
+    coverage=diagnostic['capability_coverage_v37']
+    out.append('<h2>检测能力覆盖与本轮采样状态</h2><p>'+e(coverage['measurement_note_zh'])+'</p>')
+    out.append('<table><tr><th>能力</th><th>实现范围</th><th>边界</th></tr>')
+    labels={'bounded_observation':'已实现（限定观察）','partial':'部分覆盖','not_implemented':'待实现',
+            'excluded_zero_contact':'默认不测（零接触）','not_inferred':'不作推断','server_private':'站点私有数据'}
+    for row in coverage['groups']:
+        out.append('<tr><td>'+e(row['title_zh'])+'</td><td>'+e(labels[row['implementation']])+'</td><td>'+e(row['boundary_zh'])+'</td></tr>')
+    out.append('</table><pre>'+e(json.dumps(coverage['browser_detail_attempts'],ensure_ascii=False,indent=2))+'</pre>')
     plan = remediation_plan(diagnostic)
     if diagnostic.get('effective_policies'):
         out.append('<h2>源配置与运行态的已知差异</h2><pre>' + e(json.dumps(diagnostic['effective_policies'], ensure_ascii=False, indent=2)) + '</pre>')

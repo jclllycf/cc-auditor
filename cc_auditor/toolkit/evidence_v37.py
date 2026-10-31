@@ -286,7 +286,8 @@ def analyze(report):
     confirmed = [r for r in observations if r['state'] in ('confirmed_fault', 'confirmed_mismatch')]
     features = [r for r in observations if r['state'] in ('reference', 'pass_scoped')]
     gaps = [r for r in observations if r not in confirmed and r not in features]
-    return {'contract': CONTRACT, 'source_run_id': report.get('run_id'), 'source_created_at_utc': report.get('created_at_utc'),
+    from .coverage_v37 import summary as coverage_summary
+    return {'capability_coverage_v37':coverage_summary(report), 'contract': CONTRACT, 'source_run_id': report.get('run_id'), 'source_created_at_utc': report.get('created_at_utc'),
             'source_snapshot_sha256': digest({k: v for k, v in report.items() if k != 'diagnostics_v37'}),
             'interpretation_clock': 'original_run_snapshot_not_current_measurement', 'synthetic': report.get('synthetic') is True,
             'observations': observations, 'confirmed': confirmed, 'features': features, 'gaps': gaps,
@@ -304,5 +305,6 @@ def compact(diagnostic, limit=10):
             'captured_at_utc', 'evidence_sha256', 'explanation_zh', 'root_cause_confirmed', 'side_effects','failure_stage','next_action_zh')
     return {'contract': CONTRACT, 'source_run_id': diagnostic['source_run_id'], 'counts': diagnostic['counts'],
             'returned': len(selected), 'total': len(diagnostic['observations']),
+            'browser_detail_attempts':diagnostic['capability_coverage_v37']['browser_detail_attempts'],
             'observations': [{k: r[k] for k in keys} for r in selected],
             'automatic_remediation_enabled': False, 'scope_note_zh': diagnostic['scope_note_zh']}

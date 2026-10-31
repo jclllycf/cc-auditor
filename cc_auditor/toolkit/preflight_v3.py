@@ -159,7 +159,7 @@ def run(scan_id):
     for key,record in session['profiles'].items():
         p=guarded('profile_static_'+key,lambda:profiles_v3.static_profile(record),dict(record['public'])) if 'browser_static' in approval['scopes'] else dict(record['public'])
         if key in approval['profiles'] and 'browser_dynamic' in approval['scopes']:
-            d=guarded('profile_dynamic_'+key,lambda:profiles_v3.dynamic_profile(record,independent_network='independent_network' in approval['scopes']),{'status':'failed','dynamic_profile_checked':False});p.update({k:v for k,v in d.items() if k not in record['public'] or k in ('dynamic_profile_checked','actual_profile_verified','write_tests_performed','rollback_status','cleanup_status')})
+            d=guarded('profile_dynamic_'+key,lambda:profiles_v3.dynamic_profile(record,independent_network='independent_network' in approval['scopes'],browser_feature_details='browser_feature_details' in approval['scopes']),{'status':'failed','dynamic_profile_checked':False});p.update({k:v for k,v in d.items() if k not in record['public'] or k in ('dynamic_profile_checked','actual_profile_verified','write_tests_performed','rollback_status','cleanup_status')})
             p['dynamic_result']=d
         profiles.append(p)
     if 'browser_region' in approval['scopes']:

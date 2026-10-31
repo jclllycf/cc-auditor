@@ -16,7 +16,7 @@ MCP_TOOLS_SPEC=[
  _spec('poll_deep_preflight','查看本轮状态；MCP 同步运行结束后返回最小报告路径。',SID),
  _spec('cancel_deep_preflight','撤销本轮授权；运行中的采集在下一有界阶段检查时停止，不停止用户应用。stdio 同步调用期间不能并发接收取消。',SID),
  _spec('build_pdf_reports','仅从本工具保存并校验的同一 JSON 生成固定双 PDF 和必要时的证据补足清单，不再检测环境。',SID),
- _spec('get_preflight_evidence','返回最多十条脱敏证据；可选择 diagnostics 解释故障/特征/缺证，或 comparison 对照同机同 Profile 的已保存报告。均不采集或修改环境。',{**SID,'layer':{'type':'string','pattern':'^L(?:0[1-9]|1[0-2])$'},'view':{'type':'string','enum':['legacy','diagnostics','comparison']},'compare_to_scan_id':{'type':'string','pattern':'^[0-9a-f]{32}$'}}),
+ _spec('get_preflight_evidence','返回最多十条脱敏证据；可选择 diagnostics 解释故障/特征/缺证，或 comparison 对照同机同 Profile 的已保存报告；coverage 列出功能覆盖与详细浏览器采样状态。均不采集或修改环境。',{**SID,'layer':{'type':'string','pattern':'^L(?:0[1-9]|1[0-2])$'},'view':{'type':'string','enum':['legacy','diagnostics','comparison','coverage']},'compare_to_scan_id':{'type':'string','pattern':'^[0-9a-f]{32}$'}}),
 ]
 
 def dispatch_mcp_tool(name,arguments=None):
@@ -24,7 +24,9 @@ def dispatch_mcp_tool(name,arguments=None):
     if not spec:raise PermissionError('旧接口已停用；请使用统一 prepare / run 工作流。')
     if type(args) is not dict or set(args)-set(spec['inputSchema']['properties']):raise ValueError('unsupported_tool_arguments')
     if 'scan_id' in spec['inputSchema']['properties'] and (type(args.get('scan_id')) is not str or not re.fullmatch('[0-9a-f]{32}',args['scan_id'])):raise ValueError('invalid_scan_id')
-    if name=='audit_capabilities':return {'version':core.VERSION,'workflow':'single_preuse_preflight','active_anthropic_probing':False,'scope_groups':SCOPES,
+    if name=='audit_capabilities':
+        from .coverage_v37 import catalog
+        return {'version':core.VERSION,'capability_coverage':catalog(),'workflow':'single_preuse_preflight','active_anthropic_probing':False,'scope_groups':SCOPES,
         'assessment_contract':'3.5.health.region.1','evidence_contract':'3.7.evidence.1','automatic_remediation_enabled':False,'outputs':['surface_assessments','usage_scenarios','location_observability','remaining_gaps_v33','diagnostics_v37'],
         'limitations':['无需 Claude；不主动访问它。','四端健康分不是封禁概率，缺证贡献与确认故障贡献分别记账。','一次原生授权后有界自动补证；固定双 PDF，当前关键缺口仍在时另附第三份。','代理配置模拟、已有连接、通用探针出口分别归因。','Google 专属地区不作为 Claude 资格；真实 Profile 使用本人确认与定向回调 PID 判据。']}
     if name=='prepare_deep_preflight':return core.prepare(args.get('scopes'))
@@ -41,7 +43,11 @@ def dispatch_mcp_tool(name,arguments=None):
     report,_=core.read(path);layer=args.get('layer')
     if layer is not None and not re.fullmatch(r'L(?:0[1-9]|1[0-2])',layer):raise ValueError('invalid_layer')
     selected_view=args.get('view','legacy')
-    if selected_view not in ('legacy','diagnostics','comparison'):raise ValueError('invalid_evidence_view')
+    if selected_view not in ('legacy','diagnostics','comparison','coverage'):raise ValueError('invalid_evidence_view')
+    if selected_view=='coverage':
+        if 'compare_to_scan_id' in args or layer is not None:raise ValueError('incompatible_evidence_arguments')
+        from .coverage_v37 import summary
+        return summary(report)
     if selected_view=='diagnostics':
         if 'compare_to_scan_id' in args or layer is not None:raise ValueError('incompatible_evidence_arguments')
         from .evidence_v37 import analyze,compact

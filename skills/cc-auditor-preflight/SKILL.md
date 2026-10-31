@@ -53,6 +53,12 @@ description: 在真实 Windows 上完成一次授权的 Claude 首次使用前�
 
 只有批准联网范围才访问卡内固定非 Anthropic 测点；无媒体授权、无 TURN、无登录扣款。第三方可记录最小 IP/DNS/TLS 元数据，工具摘要可进入 Agent 云模型，本地清理不能撤回外发。只清理工具自己的实验键和受控工件。
 
+## v3.7 可选详细特征与覆盖对照
+
+调用 `audit_capabilities` 读取 `capability_coverage`；需要解释该轮范围时调用 `get_preflight_evidence` 的 `view="coverage"`。50 个 EnvGuardCC 配置 ID 均有映射，不代表全部实现或已测通过；网站按功能类别对照，完整对照见源码 docs/upgrade-v37/COVERAGE_ZH.md。
+
+`browser_feature_details` 单独授权，默认未勾选，必须有 `browser_dynamic` 与所选日常 Profile。固定字体候选、Emoji/Canvas、WebGL、离线 Audio、权限 query 与 Fetch Metadata 是环境观察，不生成稳定哈希、不修改环境、不要求媒体权限。Agent 默认只读取状态摘要；不自动上传细节。失败、超时、不支持、未授权与未运行分别保留；新增项不改变旧健康分。
+
 ## 验收和交付
 
 三份 PDF 使用同一 run_id/证据 SHA/评分版本。首页优先四端健康分、技术准备、地区边界和三类行动；详细版保留逐项状态、所有 Profile、账本、来源和自动尝试；第三份只列现在能补的资料，不要求未来安装或服务端秘密。
