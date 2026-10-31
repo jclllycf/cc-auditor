@@ -4,6 +4,8 @@ import configparser
 import os
 import re
 import secrets
+import hashlib
+import hmac
 import subprocess
 import threading
 import time
@@ -13,6 +15,14 @@ from ..collectors import file_version
 from ..storage import no_reparse
 from .browser_discovery import BROWSER_CATALOG,CHROMIUM_USER_DATA_PATHS
 from .zero_contact_guard import utc_now
+
+_PROFILE_SESSION_KEY=secrets.token_bytes(32)
+
+
+def profile_session_binding(executable, profile_path):
+    """Bound only within this collector process; never publish the input paths."""
+    material=(str(executable).casefold()+'\0'+str(profile_path).casefold()).encode('utf-8')
+    return hmac.new(_PROFILE_SESSION_KEY,material,hashlib.sha256).hexdigest()
 
 def discover():
     public=[];private={};seen=set();running={};running_roots={}
@@ -61,6 +71,7 @@ def discover():
             seen.add(str(path).casefold());key=entry['id']+'-profile-'+str(idx)
             row={'browser_id':entry['id'],'browser_name':entry['name'],'engine':entry['engine'],'version':file_version(found) or '',
                 'profile_key':key,'profile_alias':'日常档案 '+str(idx),'browser_running':str(found).casefold() in running,
+                'profile_session_binding':profile_session_binding(found,path),
                 'static_profile_checked':False,'dynamic_profile_checked':False,'actual_profile_verified':False,
                 'write_tests_performed':False,'rollback_status':'not_needed','cleanup_status':'not_performed'}
             public.append(row);private[key]={'public':row,'exe':found,'root':userroot,'path':path}
@@ -110,7 +121,7 @@ def static_profile(record):
     except (OSError,ValueError,TypeError,KeyError):pub['static_error']='部分诊断键/扩展目录读取失败'
     return pub
 
-def dynamic_profile(record,timeout=35,independent_network=False):
+def dynamic_profile(record,timeout=35,independent_network=False,browser_feature_details=False):
     from .browser_probe import ToolkitBrowserLoopbackSession
     pub=dict(record['public']);pub.update(checked_at_utc=utc_now(),status='not_tested',reason='未安全复用日常 Profile',profile_binding='unverified')
     # Approval card attests the selected existing daily profile. Never create a fresh user-data-dir.
@@ -126,7 +137,7 @@ def dynamic_profile(record,timeout=35,independent_network=False):
                     p=psutil.Process(c.pid)
                     if Path(p.exe()).resolve()==exe.resolve():peers.append({'pid':p.pid,'created_epoch':p.create_time(),'binary':exe.name})
         except (psutil.Error,OSError):pass
-    session=ToolkitBrowserLoopbackSession(peer_observer=observe,independent_network=independent_network)
+    session=ToolkitBrowserLoopbackSession(peer_observer=observe,independent_network=independent_network,browser_feature_details=browser_feature_details)
     def launch(url):
         if pub['engine']=='Gecko':args=[str(exe),'-P',firefox_profile_name(record['path']),'-new-tab',url]
         else:args=[str(exe),'--user-data-dir='+str(record['root']),'--profile-directory='+record['path'].name,'--new-tab',url,'--no-first-run','--no-default-browser-check']

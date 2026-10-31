@@ -3,7 +3,13 @@ name: cc-auditor-preflight
 description: 在真实 Windows 上完成一次授权的 Claude 首次使用前环境预检，输出四端正向环境健康分、技术准备建议与独立资格提醒，自动补证并生成双 PDF 和条件式补证清单。不用于账号实验、地区伪造或常驻监控。
 ---
 
-# CC Auditor v3.6 发布候选：首次使用前环境预检
+# CC Auditor v3.7 开发候选：首次使用前环境预检
+
+先以实际 `audit_capabilities` 为准。若为 v3.7，证据契约是 `3.7.evidence.1`；健康分仍为 `3.5.health.region.1`。新增源码能力没有同版 Windows EXE/实机验收承诺。
+原七工具名称保留，`get_preflight_evidence` 可使用 `view="diagnostics"` 或 `view="comparison", compare_to_scan_id="<前轮ID>"`。
+故障、环境特征、缺证分别解释；synthetic、受干预测量与真实日常 Profile 不混为已测通过。
+比较缺少同设备/Profile/版本/授权/策略/接收端时，接受“不能直接比较”，不计算虚假提升。
+修复预案仅供审阅，`automatic_remediation_enabled=false`；没有系统变更执行器。不得用本 Skill、计划或聊天同意替代未来的二次原生审批。
 
 当前源码契约 `3.5.health.region.1`。新 Windows 构建须取得自己的真人授权回执，旧 v3.4 真实运行与自动测试不能证明新版本实机已通过。先调用 `audit_capabilities` 确认实际程序版本；若仍是 v3.4，按旧风险分解释，绝不能叫健康分。
 
@@ -12,7 +18,7 @@ description: 在真实 Windows 上完成一次授权的 Claude 首次使用前�
 1. 使用用户本机的非 Claude Agent；云端执行结果不冒充其电脑。
 2. 调用 `prepare_deep_preflight`，再调用 `run_approved_deep_preflight(scan_id)`。本人在原生卡选择检测范围、已打开的日常 Profile、计划入口、API 实际发送方式和可选真实资格声明。Agent 不代点批准、不代填自述，不用 PIN、布尔值、旧会话或测试 mock 自我授权。
 3. 仅在批准范围自动发现、读取、关联和复核。每源最多一次重试，额外预算 75 秒；保留失败和重试轨迹。取消立即停止后续有界阶段，不扩大范围、不停止用户应用。
-4. 同一不可变 JSON 生成 `report_v3_6` 简明、完整技术两份中文 PDF；自动补证后仍有当前可补关键缺口，才生成证据补足清单。历史 JSON 离线重评必须明确没有新增测量，不覆盖旧报告。
+4. 同一不可变 JSON 生成同版目录（v3.7 为 `report_v3_7`）的简明、完整技术两份中文 PDF；自动补证后仍有当前可补关键缺口，才生成证据补足清单。新增诊断缺口与原评分补证清单分别解释。历史 JSON 离线重评必须明确没有新增测量，不覆盖旧报告。
 5. 只向模型返回脱敏摘要、健康分、技术建议、地区观测边界、必要行动及本地文件路径；不粘贴整份配置、原始 Profile 或私人报告。`get_preflight_evidence` 最多十项。
 
 ## 核心判断
@@ -46,6 +52,12 @@ description: 在真实 Windows 上完成一次授权的 Claude 首次使用前�
 `browser_dynamic` 仅复用已打开且本人确认的真实日常 Profile。不得用空白临时/无痕/Guest 档案代替日常资料。token 回调、定向启动和 PID 为有限归属证据，不叫不可伪造身份证明。
 
 只有批准联网范围才访问卡内固定非 Anthropic 测点；无媒体授权、无 TURN、无登录扣款。第三方可记录最小 IP/DNS/TLS 元数据，工具摘要可进入 Agent 云模型，本地清理不能撤回外发。只清理工具自己的实验键和受控工件。
+
+## v3.7 可选详细特征与覆盖对照
+
+调用 `audit_capabilities` 读取 `capability_coverage`；需要解释该轮范围时调用 `get_preflight_evidence` 的 `view="coverage"`。50 个 EnvGuardCC 配置 ID 均有映射，不代表全部实现或已测通过；网站按功能类别对照，完整对照见源码 docs/upgrade-v37/COVERAGE_ZH.md。
+
+`browser_feature_details` 单独授权，默认未勾选，必须有 `browser_dynamic` 与所选日常 Profile。固定字体候选、Emoji/Canvas、WebGL、离线 Audio、权限 query 与 Fetch Metadata 是环境观察，不生成稳定哈希、不修改环境、不要求媒体权限。Agent 默认只读取状态摘要；不自动上传细节。失败、超时、不支持、未授权与未运行分别保留；新增项不改变旧健康分。
 
 ## 验收和交付
 

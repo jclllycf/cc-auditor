@@ -4,7 +4,7 @@ from .zero_contact_guard import utc_now
 from . import fixed_risk_v33 as model
 
 def remaining_gaps(report,view=None):
-    view=view or (model.assess_v35(report) if str(report.get('version','')).startswith(('3.5','3.6')) else model.assess(report));out=[];trace=report.get('evidence_completion_v33',{}).get('attempts',[])
+    view=view or (model.assess_v35(report) if str(report.get('version','')).startswith(('3.5','3.6','3.7')) else model.assess(report));out=[];trace=report.get('evidence_completion_v33',{}).get('attempts',[])
     scopes=set(report.get('approval',{}).get('scopes',[]))
     for s in view['selected_surfaces']:
         for r in view['surface_assessments'][s]['ledger']:
@@ -47,7 +47,7 @@ def attach(report,program=None,paths=None,attempts=None,finalized=True):
             report['checks'].append({'id':'v33_path_'+key.replace(':','_'),'layer':'L12','title':'v3.3 路径关联 '+key,'state':'reference' if path.get('status')=='passed' else 'fault' if path.get('status')=='verified_fault' else 'partial','value':path,'criterion':'运行规则与已批准中立视点关联；不是 Claude 最终公网出口','points':0,'issue_id':'v33_path_'+key,'source':'runtime_rule_neutral_correlation','scope':key,'captured_at_utc':path.get('captured_at_utc',utc_now()),'reason':path['reason'],'evidence_id':'E'+str(len(report['checks'])+1).zfill(3),'next_step':'仅在已批准范围继续复核'})
     if attempts is not None:report['evidence_completion_v33']={'version':'3.4.preuse.loop.1','finalized':finalized,'budget_seconds':75,'per_source_retry_limit':1,'attempts':attempts,'cancelled':False}
     from .preflight_v3 import summarize
-    report['summary']=summarize(report);view=model.assess_v35(report) if str(report.get('version','')).startswith(('3.5','3.6')) else model.assess(report)
+    report['summary']=summarize(report);view=model.assess_v35(report) if str(report.get('version','')).startswith(('3.5','3.6','3.7')) else model.assess(report)
     if str(report.get('model_version','')).startswith('3.2'):
         report['historical_assessment_v32']={k:report[k] for k in ('model_version','surface_assessments','usage_scenarios','headline') if k in report}
     report['assessment_v33']=view;report.update(view);report['remaining_gaps_v33']=remaining_gaps(report,view)
@@ -105,9 +105,14 @@ def complete(report,topology,discovery,runtime,program,private,records,cancelled
         key=p['profile_key'];net=((p.get('dynamic_result') or {}).get('data') or {}).get('independent_network') or {}
         required_network=('ipv4','dns','stun')+(('ipv6',) if (topology or {}).get('vpn_and_tun_topology',{}).get('system_has_ipv6_default_route') is True else ())
         needs=not p.get('dynamic_profile_checked') or 'independent_network' in scopes and any(net.get(k,{}).get('status')!='observed' for k in required_network)
+        if 'browser_feature_details' in scopes:
+            from .browser_details_v37 import GROUPS
+            detail=((p.get('dynamic_result') or {}).get('data') or {}).get('browser_details_v37') or {}
+            needs=needs or any(detail.get(k,{}).get('status') in (None,'failed','timeout') for k in GROUPS)
+            needs=needs or any(v in ('failed','timeout') for v in detail.get('permissions',{}).get('values',{}).values())
         if key not in report['approval'].get('profiles',[]) or not needs:continue
         first=copy.deepcopy(p.get('dynamic_result'));p['v33_attempt_history']=[{'attempt':1,'result':first}]
-        d=attempt('profile:'+key,'web','browser_dynamic',35,lambda r=records[key]:profiles_v3.dynamic_profile(r,timeout=30,independent_network='independent_network' in scopes))
+        d=attempt('profile:'+key,'web','browser_dynamic',35,lambda r=records[key]:profiles_v3.dynamic_profile(r,timeout=30,independent_network='independent_network' in scopes,browser_feature_details='browser_feature_details' in scopes))
         attempts[-1]['attempt']=2
         if d:
             p['v33_attempt_history'].append({'attempt':2,'result':copy.deepcopy(d)})

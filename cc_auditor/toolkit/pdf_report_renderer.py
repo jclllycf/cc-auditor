@@ -117,7 +117,7 @@ def build_legacy_pdf_reports(report_path):
 
 def build_pdf_reports(report_path):
     report,_=read(report_path)
-    if str(report.get('version','')).startswith(('3.5','3.6')):
+    if str(report.get('version','')).startswith(('3.5','3.6','3.7')):
         from .pdf_v35 import build
         return build(report_path)
     from .pdf_v33 import build

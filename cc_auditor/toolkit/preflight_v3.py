@@ -5,6 +5,7 @@ import hashlib
 import json
 import time
 import sys
+import secrets
 from pathlib import Path
 from .. import storage
 from ..model import root_dir,canonical
@@ -12,7 +13,8 @@ from . import profiles_v3,proxy_discovery,route_correlation,network_v3
 from .consent_v3 import BROKER
 from .zero_contact_guard import utc_now
 
-SCHEMA='cc-auditor-preflight/3';VERSION='3.6.0-beta.1';RULESET='2026-10-22.health-region.1'
+SCHEMA='cc-auditor-preflight/3';VERSION='3.7.0-dev1';RULESET='2026-10-31.evidence.1'
+_DEVICE_SESSION=secrets.token_hex(16)
 STATE_ZH={'passed':'已测通过','fault':'已证实异常','reference':'参考证据','partial':'部分证据','unknown':'尚未检测','failed':'检测失败','unsupported':'当前不支持','permission':'未授权'}
 RUNS={}
 
@@ -103,6 +105,7 @@ def make_report(scan_id,approval,local=None,topology=None,discovery=None,routes=
         for p in region.get('profiles',[]):
             add(p['profile_key']+'_region','L09','日常 Profile 网页语言对照','reference' if p.get('status')=='observed' else 'failed',p,'Preferences 与本轮工具 origin 的 navigator/Accept-Language 分开记录；不推定 Claude 已收到',source='profile_preferences_and_tool_origin',scope=p['profile_key'])
     report={'schema':SCHEMA,'version':VERSION,'ruleset':RULESET,'run_id':scan_id,'created_at_utc':now,'synthetic':synthetic,'approval':approval,
+        'diagnostic_context_v37':{'device_session':_DEVICE_SESSION,'execution_origin':'synthetic' if synthetic else 'local_windows' if (local.get('vantage') or {}).get('is_user_local_windows') is True else 'unknown','binding':'same_collector_process_only'},
         'checks':checks,'profiles':profiles,'proxy_discovery':discovery,'target_routes':routes,'generic_probe_egress':probes,
         'source_build':approval.get('source_build') or source_build(),
         'zero_contact':{'scope':'本工具采集器；不包含用户已有程序和 Agent 模型通信','scanner_anthropic_requests_sent':0,'basis':'目标模拟无网络；外部采集器只有固定中立域名；没有整机抓包证明'},
@@ -156,7 +159,7 @@ def run(scan_id):
     for key,record in session['profiles'].items():
         p=guarded('profile_static_'+key,lambda:profiles_v3.static_profile(record),dict(record['public'])) if 'browser_static' in approval['scopes'] else dict(record['public'])
         if key in approval['profiles'] and 'browser_dynamic' in approval['scopes']:
-            d=guarded('profile_dynamic_'+key,lambda:profiles_v3.dynamic_profile(record,independent_network='independent_network' in approval['scopes']),{'status':'failed','dynamic_profile_checked':False});p.update({k:v for k,v in d.items() if k not in record['public'] or k in ('dynamic_profile_checked','actual_profile_verified','write_tests_performed','rollback_status','cleanup_status')})
+            d=guarded('profile_dynamic_'+key,lambda:profiles_v3.dynamic_profile(record,independent_network='independent_network' in approval['scopes'],browser_feature_details='browser_feature_details' in approval['scopes']),{'status':'failed','dynamic_profile_checked':False});p.update({k:v for k,v in d.items() if k not in record['public'] or k in ('dynamic_profile_checked','actual_profile_verified','write_tests_performed','rollback_status','cleanup_status')})
             p['dynamic_result']=d
         profiles.append(p)
     if 'browser_region' in approval['scopes']:
@@ -174,12 +177,16 @@ def run(scan_id):
     report=guarded('evidence_completion',lambda:complete(report,topo,discovery,runtime,program,program_private,session['profiles'],lambda:BROKER.cancelled(scan_id)),report)
     if 'assessment_v33' not in report:attach(report,program,attempts=[{'source':'completion','surface':'all','status':'failed','reason':'completion_not_finished'}])
     report['collector_errors']=errors
+    from .evidence_v37 import analyze
+    report['diagnostics_v37']=analyze(report)
     paths=save(report)
     from .pdf_report_renderer import build_pdf_reports
     pdfs=guarded('pdf_renderer',lambda:build_pdf_reports(paths['json']),{})
     from .plain_decisions_v35 import assess as display_assess
     view=display_assess(report)
-    session['result']={'status':'cancelled' if BROKER.cancelled(scan_id) else 'completed' if pdfs and not errors else 'completed_with_limitations','run_id':scan_id,'summary_zh':view['headline'],'surface_assessments':{k:{x:a[x] for x in ('health_level','health_score','technical_environment_ready','recommend_now','reason','next_action')} for k,a in view['surface_assessments'].items()},'usage_scenarios':view['usage_scenarios'],'remaining_gap_count':len(report['remaining_gaps_v33']),'pdf_paths':pdfs,'evidence_path':paths['json'],'collector_errors':errors}
+    from .review_v37 import export_review
+    review=guarded('offline_review',lambda:export_review(paths['json']),{})
+    session['result']={'status':'cancelled' if BROKER.cancelled(scan_id) else 'completed' if pdfs and not errors else 'completed_with_limitations','run_id':scan_id,'summary_zh':view['headline'],'surface_assessments':{k:{x:a[x] for x in ('health_level','health_score','technical_environment_ready','recommend_now','reason','next_action')} for k,a in view['surface_assessments'].items()},'usage_scenarios':view['usage_scenarios'],'remaining_gap_count':len(report['remaining_gaps_v33']),'pdf_paths':pdfs,'evidence_path':paths['json'],'collector_errors':errors,'review_paths':review,'diagnostic_counts':report['diagnostics_v37']['counts']}
     return session['result']
 
 

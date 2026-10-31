@@ -25,8 +25,13 @@ def show_result(result):
 
 
 def main():
-    parser=argparse.ArgumentParser(description='CC Auditor 使用前环境预检');parser.add_argument('--scan',action='store_true');parser.add_argument('--interactive',action='store_true');parser.add_argument('--mcp',action='store_true');parser.add_argument('--pdf-from-report');parser.add_argument('--pdf-v35-from-report')
+    parser=argparse.ArgumentParser(description='CC Auditor 使用前环境预检');parser.add_argument('--scan',action='store_true');parser.add_argument('--interactive',action='store_true');parser.add_argument('--mcp',action='store_true');parser.add_argument('--pdf-from-report');parser.add_argument('--pdf-v35-from-report');parser.add_argument('--review-report');parser.add_argument('--compare-report')
     args=parser.parse_args()
+    if args.compare_report and not args.review_report:parser.error('--compare-report requires --review-report')
+    if args.review_report:
+        if args.scan or args.mcp or args.pdf_from_report or args.pdf_v35_from_report:parser.error('review cannot start a scan or another workflow')
+        from .review_v37 import export_review
+        print(json.dumps(export_review(args.review_report,args.compare_report),ensure_ascii=False));return 0
     if args.pdf_v35_from_report:
         from .pdf_v35 import build
         print(json.dumps(build(args.pdf_v35_from_report),ensure_ascii=False));return 0

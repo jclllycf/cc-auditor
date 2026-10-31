@@ -18,7 +18,8 @@ def mcp(command):
     if p.returncode:raise RuntimeError('mcp_process_failed')
     responses=[json.loads(x) for x in p.stdout.splitlines()];byid={r['id']:r for r in responses}
     assert len(responses)==4
-    assert byid[1]['result']['serverInfo']['version']=='3.6.0-beta.1'
+    from cc_auditor.toolkit.preflight_v3 import VERSION
+    assert byid[1]['result']['serverInfo']['version']==VERSION
     assert len(byid[2]['result']['tools'])==7
     cap=byid[3]['result']['structuredContent'];assert cap['active_anthropic_probing'] is False and cap['assessment_contract']=='3.5.health.region.1'
     assert byid[4]['result']['isError'] is True
@@ -38,6 +39,7 @@ def synthetic(destination):
     path=save(r,Path(destination))['json'];return path
 
 def main():
+    if hasattr(sys.stdout,'reconfigure'):sys.stdout.reconfigure(encoding='utf-8')
     p=argparse.ArgumentParser();p.add_argument('--exe',type=Path);p.add_argument('--synthetic-dir',type=Path);a=p.parse_args()
     command=[str(a.exe.resolve()),'--mcp'] if a.exe else [sys.executable,str(ROOT/'preflight_entry_v3.py'),'--mcp']
     receipt={'mcp':mcp(command)}

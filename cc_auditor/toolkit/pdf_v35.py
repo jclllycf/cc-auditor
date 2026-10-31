@@ -10,7 +10,7 @@ from .evidence_completion_v33 import remaining_gaps
 from .fixed_risk_v33 import SURFACES, STATE_ZH
 from .pdf_v31 import e
 
-VERSION = '3.5.health.pdf.1'
+VERSION = '3.7.health.pdf.1'
 
 
 def technical_html(report, digest, view, gaps):
@@ -21,6 +21,10 @@ def technical_html(report, digest, view, gaps):
            '<h2>健康分公式与技术行动门槛</h2><p>四端独立计算。适用原始权重归一化为 100，不适用项移出分母。已测通过系数 0，确认故障与必要兼容条件未配置系数 1，部分证据系数 0.15，未取得证据系数 0.35。同一根因保留最高贡献；所有测量缺口合计最多扣 20，按比例缩放回每条账本。十进制 HALF_UP 四舍五入。健康分 = clamp(100 − 确认故障 − 兼容问题 − 有界测量缺口, 0, 100)。确认关键严重阻断时健康分最高 25；下调另列。85–100 优良，70–84 良好，50–69 需关注，0–49 需优先整改。</p>',
            '<p>技术准备要求：有可评估的系统/真实 Profile 基础、必要基础项已通过、没有确认关键阻断、健康分至少 50。全部缺测不会因缺口上限得到“可开始”。缺少 Claude、SDK、账号、历史连接、所在地自述不扣分。未知远端 API 不打整条路径分数；本机接入基础另列。真实资格、覆盖度、实际业务结果独立。</p>']
     if report.get('synthetic'):out.insert(0,'<h2>合成示例，不是本机实测</h2>')
+    if str(report.get('version','')).startswith('3.7'):
+        from .evidence_v37 import analyze
+        from .review_v37 import report_section
+        out.append(report_section(analyze(report)))
     for s, a in view['surface_assessments'].items():
         score = '未评分' if a['health_score'] is None else str(a['health_score']) + '/100'
         out.append('<h2 class="page">' + e(SURFACES[s]) + '：环境健康分 ' + score + ' · ' + e(a['health_level']) + '</h2><p>适合开始准备：' + e(a['recommend_now']) + '<br>' + e(a['reason']) + '<br>下一步：' + e(a['next_action']) + '<br>实际服务：预检未测试；安装状态 ' + e(a['installation_state']) + '</p>')
@@ -82,13 +86,13 @@ def build(report_path):
     from ..storage import no_reparse
     report,digest=read(report_path); view=assess(report)
     gaps=checklist(report,remaining_gaps(report,view),view)
-    edition='3.6' if str(report['version']).startswith('3.6') else '3.5'
+    edition='3.7' if str(report['version']).startswith('3.7') else '3.6' if str(report['version']).startswith('3.6') else '3.5'
     directory=Path(report_path).parent/('report_v'+edition.replace('.','_'));no_reparse(directory);directory.mkdir(exist_ok=True)
     names=['简明报告','完整技术报告']+(['证据补足清单'] if gaps else [])
     paths=[directory/('CC_Auditor_'+n+'_v'+edition+'.pdf') for n in names]
     Reader,Writer=pdf_backend(); source=source_build()['toolkit_source_sha256']
     assessment={'source_run_id':report['run_id'],'source_sha256':digest,'presentation_version':VERSION,
-                'renderer_build_sha256':source,'application_version':report['version'],'offline_reassessment':not str(report['version']).startswith(('3.5','3.6')),**view,'remaining_gaps':gaps}
+                'renderer_build_sha256':source,'application_version':report['version'],'offline_reassessment':not str(report['version']).startswith(('3.5','3.6','3.7')),**view,'remaining_gaps':gaps}
     assessment_sha=hashlib.sha256(canonical(assessment)).hexdigest()
     for p in paths:no_reparse(p)
     if any(p.exists() for p in paths):

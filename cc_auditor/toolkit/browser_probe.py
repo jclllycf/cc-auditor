@@ -369,7 +369,7 @@ def evaluate_browser_coherence(
         issues.append({
             "id": "browser_webdriver_exposed",
             "severity": "medium",
-            "detail": "浏览器暴露 navigator.webdriver=true（受 WebDriver/CDP 自动化控制），极易触发 Cloudflare Turnstile 或边缘 Bot Fight 拦截。",
+            "detail": "本工具页观察到 navigator.webdriver=true；这是浏览器报告的自动化标志，不证明目标站点将拦截或给出特定评分。",
         })
     if probe_data.get("automation_globals_detected") is True:
         issues.append({
@@ -387,13 +387,13 @@ def evaluate_browser_coherence(
         issues.append({
             "id": "browser_software_renderer_headless_tell",
             "severity": "medium",
-            "detail": "WebGL 暴露软件渲染器（如 SwiftShader / llvmpipe / Basic Render），常见于无头浏览器或禁用 GPU 加速的环境，易降低反机器人评分。",
+            "detail": "WebGL 报告软件渲染器类别，可能与 GPU 不可用、驱动、虚拟环境或浏览器策略有关；没有测量目标站点的反机器人评分。",
         })
     if not probe_data.get("request_user_agent_present", True):
         issues.append({
             "id": "browser_empty_user_agent",
             "severity": "high",
-            "detail": "HTTP 请求缺少 User-Agent 头（Cloudflare 文档明确指出空 UA 会被直接判定为 Bot Score = 1）。",
+            "detail": "本工具环回 POST 未收到 User-Agent；请核对本次浏览器/策略和请求范围，不能据此推导其他站点的 Bot Score。",
         })
 
     # Check UA-CH platform vs navigator.platform
@@ -433,9 +433,10 @@ def evaluate_browser_coherence(
 class ToolkitBrowserLoopbackSession:
     """One-shot loopback HTTP server (`127.0.0.1`) for safe browser profile capability & coherence testing."""
 
-    def __init__(self, peer_observer=None, independent_network=False) -> None:
+    def __init__(self, peer_observer=None, independent_network=False, browser_feature_details=False) -> None:
         self.peer_observer=peer_observer
         self.independent_network=independent_network is True
+        self.browser_feature_details=browser_feature_details is True
         self.token = secrets.token_urlsafe(24)
         self.result: dict[str, Any] | None = None
         self.event = threading.Event()
@@ -473,6 +474,10 @@ class ToolkitBrowserLoopbackSession:
                     self._reply(404)
                     return
                 page=DIAGNOSTIC_PAGE_HTML
+                if owner.browser_feature_details:
+                    from .browser_details_v37 import BROWSER_DETAILS_JS
+                    page=page.replace('<script>', '<script>'+BROWSER_DETAILS_JS,1).replace('    const res = await fetch(location.pathname, {','    payload.browser_details_v37 = await ccBrowserDetails();\n    const res = await fetch(location.pathname, {',1)
+                    page=page.replace('此页面仅向您电脑上的本地检测器回传基础 Web API 可用性、语言/时区与自动化暴露标志。','已批准详细特征：固定字体候选差异、Emoji/Canvas 渲染、WebGL、离线 Audio、此临时 origin 权限状态；不请求定位/摄像头/麦克风权限。')
                 if owner.independent_network:
                     from .deep_network_v31 import BROWSER_JS
                     page=page.replace('<script>', '<script>'+BROWSER_JS,1).replace('    const res = await fetch(location.pathname, {','    payload.independent_network = await ccNetworkCheck();\n    const res = await fetch(location.pathname, {',1)
@@ -493,7 +498,7 @@ class ToolkitBrowserLoopbackSession:
                     return
                 try:
                     length = int(self.headers.get("Content-Length", "0"))
-                    if not 0 < length <= 8192 or self.headers.get("Content-Type") != "application/json":
+                    if not 0 < length <= (16384 if owner.browser_feature_details else 8192) or self.headers.get("Content-Type") != "application/json":
                         raise ValueError("invalid_post_headers")
                     raw = json.loads(self.rfile.read(length).decode("utf-8"))
                     if isinstance(raw, dict):
@@ -501,6 +506,12 @@ class ToolkitBrowserLoopbackSession:
                         raw["request_accept_language"] = accept_lang if re.fullmatch(r"[A-Za-z0-9,;= ._*+-]{0,256}", accept_lang) else ""
                         raw["request_user_agent_present"] = bool(self.headers.get("User-Agent", "").strip())
                     validated = validate_browser_probe_payload(raw)
+                    if owner.browser_feature_details and "browser_details_v37" in raw:
+                        from .browser_details_v37 import sanitize
+                        validated["browser_details_v37"]=sanitize(raw["browser_details_v37"])
+                    if owner.browser_feature_details:
+                        enums={"Sec-Fetch-Site":("none","same-origin","same-site","cross-site"),"Sec-Fetch-Mode":("cors","same-origin","no-cors","navigate","websocket"),"Sec-Fetch-Dest":("empty",)}
+                        validated["request_fetch_metadata"]={key:self.headers[key] if self.headers.get(key) in choices else "unavailable" for key,choices in enums.items()}
                     if owner.independent_network and 'independent_network' in raw:
                         from .deep_network_v31 import sanitize_browser
                         validated['independent_network']=sanitize_browser(raw['independent_network'])

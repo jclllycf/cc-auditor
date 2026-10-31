@@ -59,7 +59,13 @@ def render_brief(report,digest,path,view,gaps):
     text(0,0,w,20,'CC AUDITOR   /   首次使用前环境预检',10,bold=True)
     text(0,30,w,30,'已测入口是否适合开始技术准备：'+('是' if view['recommend_now'] else '否'),15,bold=True)
     text(0,69,w,25,'本次计划：'+' / '.join(SURFACES[s] for s in view['selected_surfaces']),8.5,muted,compact=True)
-    text(0,94,w,28,'合成验收样本，不是本机实测' if report.get('synthetic') else '确认技术故障 '+str(report['summary']['faults'])+' 项 · 当前证据缺口 '+str(len(gaps))+' 项\n原始采集 '+str(report['created_at_utc'])[:10]+' · 同一 JSON 评估，本页不代表新增测量',8,muted)
+    diagnostic=None
+    if str(report.get('version','')).startswith('3.7'):
+        from .evidence_v37 import analyze
+        diagnostic=analyze(report)
+    notice='合成验收样本，不是本机实测' if report.get('synthetic') else '确认技术故障 '+str(report['summary']['faults'])+' 项 · 当前证据缺口 '+str(len(gaps))+' 项\n原始采集 '+str(report['created_at_utc'])[:10]+' · 同一 JSON 评估，本页不代表新增测量'
+    if diagnostic:notice=('合成样本 · ' if report.get('synthetic') else '')+'确认故障/偏差 '+str(len(diagnostic['confirmed']))+' · 环境参考 '+str(len(diagnostic['features']))+' · 证据缺口 '+str(len(diagnostic['gaps']))+'\n新证据诊断单列；健康分沿用原契约，离线解释没有新增测量。'
+    text(0,94,w,28,notice,8,muted)
     cw=(w-12)/2
     for i,(s,a) in enumerate(view['surface_assessments'].items()):
         x=i%2*(cw+12);y=129+i//2*142;color=muted if a['health_score'] is None else green if a['health_score']>=70 else amber if a['health_score']>=50 else red
@@ -74,7 +80,8 @@ def render_brief(report,digest,path,view,gaps):
         text(x+10,487,sw-20,20,a['recommend_text'],9,green if a['recommend_now'] else amber,True)
         text(x+10,514,sw-20,28,a['reason'] if a['planned'] else '不在本次计划，未要求补检',8,muted,compact=True)
     text(0,569,w,20,'最有价值的下一步',11,bold=True)
-    for i,action in enumerate(actions(report,view,gaps)):text(0,600+i*43,w,35,str(i+1).zfill(2)+'  '+action,9,muted,compact=True)
+    priorities=[r['id']+'：'+r['next_action_zh'] for r in diagnostic['priority_findings'][:3]] if diagnostic else []
+    for i,action in enumerate(priorities or actions(report,view,gaps)):text(0,600+i*43,w,35,str(i+1).zfill(2)+'  '+action,9,muted,compact=True)
     footer();canvas.showPage();page=2
     text(0,0,w,28,'判断依据与具体处理事项',17,bold=True);y=48
     installed={'not_required':'无需安装客户端','not_installed':'尚未安装或创建','installed':'已发现安装资料','unknown':'安装资料未核对'}
@@ -86,7 +93,9 @@ def render_brief(report,digest,path,view,gaps):
         text(0,y,w,34,'具体行动：'+a['next_action']+'；当前状态：'+installed.get(a['installation_state'],'未核对')+'，实际服务未实测',9,muted,compact=True);y+=45
     if y<650:
         text(0,y,w,23,'怎样理解这份报告',11,bold=True);y+=30
-        text(0,y,w,min(710-y,90),'尚未安装 Claude、没有 API 项目或历史连接，属于正常首次使用场景，不扣环境风险。\n'+('本轮还有 '+str(len(gaps))+' 个当前可补证缺口，另附《证据补足清单》。' if gaps else '本轮没有需要另列的当前可补证缺口。')+'\n注册、登录、实际服务可用性及银行交易必须由真实服务确认。',9,muted,compact=True)
+        gap_note='本轮还有 '+str(len(gaps))+' 个当前可补证缺口，另附《证据补足清单》。' if gaps else '本轮没有需要另列的当前可补证缺口。'
+        if diagnostic and diagnostic['gaps'] and not gaps:gap_note='既有健康模型没有要求另列补证清单；新增诊断仍保留 '+str(len(diagnostic['gaps']))+' 项缺证，详见完整技术报告。'
+        text(0,y,w,min(710-y,90),'尚未安装 Claude、没有 API 项目或历史连接，属于正常首次使用场景，不扣环境风险。\n'+gap_note+'\n注册、登录、实际服务可用性及银行交易必须由真实服务确认。',9,muted,compact=True)
     footer();canvas.save();return bounds
 
 

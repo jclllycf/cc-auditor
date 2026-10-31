@@ -9,6 +9,7 @@ import struct
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from .zero_contact_guard import utc_now
+from .address_semantics import is_public_unicast, classify_address
 
 DESTINATIONS = ('*.test.dnscheck.tools (随机测量名，仅 DNS)', 'ws.dnscheck.tools (WSS)',
                 'stun.cloudflare.com:3478 (UDP)', 'api4.ipify.org (浏览器 HTTPS)',
@@ -27,7 +28,7 @@ def parse_dns_txt(lines):
         if match:
             try:
                 ip=ipaddress.ip_address(match[1])
-                if ip.is_global:result.append({'resolver_ip':str(ip),'authoritative_transport':match[2].upper()})
+                if is_public_unicast(str(ip)):result.append({'resolver_ip':str(ip),'authoritative_transport':match[2].upper()})
             except ValueError:pass
     return result[:8]
 
@@ -66,7 +67,7 @@ def parse_stun(data,transaction):
         address=value[4:];mask=struct.pack('!I',cookie)+transaction
         if attr==0x0020:address=bytes(v^mask[i] for i,v in enumerate(address))
         ip=ipaddress.ip_address(address)
-        if not ip.is_global:raise ValueError('stun_nonpublic')
+        if not is_public_unicast(str(ip)):raise ValueError('stun_nonpublic')
         return str(ip)
     raise ValueError('stun_mapped_address_absent')
 
@@ -78,7 +79,7 @@ def stun_receiver(allow_fake=False):
         rows=socket.getaddrinfo('stun.cloudflare.com',3478,socket.AF_UNSPEC,socket.SOCK_DGRAM)
         for af,kind,proto,_,endpoint in rows[:2]:
             ip=ipaddress.ip_address(endpoint[0].split('%')[0])
-            if not ip.is_global and not (allow_fake and any(ip.version==n.version and ip in n for n in FAKE_NETWORKS)):continue
+            if not is_public_unicast(str(ip)) and not (allow_fake and any(ip.version==n.version and ip in n for n in FAKE_NETWORKS)):continue
             transaction=secrets.token_bytes(12);payload=struct.pack('!HHI',1,0,0x2112a442)+transaction
             try:
                 with socket.socket(af,kind,proto) as sock:
@@ -131,14 +132,14 @@ def sanitize_browser(value):
         for field in ('ip','mapped_ip'):
             try:
                 ip=ipaddress.ip_address(v.get(field,''))
-                if ip.is_global:row[field]=str(ip)
+                if is_public_unicast(str(ip)):row[field]=str(ip)
             except ValueError:pass
         if key=='dns':
             row['resolver_ips']=[]
             for raw in (v.get('resolver_ips') or [])[:8]:
                 try:
                     ip=ipaddress.ip_address(raw)
-                    if ip.is_global:row['resolver_ips'].append(str(ip))
+                    if is_public_unicast(str(ip)):row['resolver_ips'].append(str(ip))
                 except ValueError:pass
             if not row['resolver_ips']:row['status']='failed'
         if key=='tls':
@@ -148,7 +149,20 @@ def sanitize_browser(value):
             if not row.get('ja4') and not row.get('ja3_hash'):row['status']='failed'
         if key in ('ipv4','ipv6') and not row.get('ip'):row['status']='failed'
         if key in ('ipv4','ipv6') and row.get('ip') and ipaddress.ip_address(row['ip']).version!=(4 if key=='ipv4' else 6):row.update(status='failed',reason='echo_family_mismatch')
-        if key=='stun' and not row.get('mapped_ip'):row['status']='failed'
+        if key=='stun':
+            row['gathering_complete']=v.get('gathering_complete') is True
+            candidates=v.get('candidates')
+            if isinstance(candidates,list) and len(candidates)<=32:
+                row['candidates']=[]
+                for candidate in candidates:
+                    if not isinstance(candidate,dict):raise ValueError('invalid_ice_candidate')
+                    address=classify_address(candidate.get('address'))
+                    if address['category']=='invalid' or candidate.get('type') not in ('host','srflx','prflx','relay'):raise ValueError('invalid_ice_candidate')
+                    row['candidates'].append({'address':address.get('address','mdns.local'),'type':candidate['type'],'address_category':address['category']})
+            # Preserve legacy observed=remote STUN mapping; a completed empty ICE
+            # measurement must not satisfy the old UDP/STUN echo scoring rule.
+            if not row.get('mapped_ip'):
+                row['status']='completed_without_public_mapping' if row['gathering_complete'] and 'candidates' in row else 'failed'
         out[key]=row
     return out
 
@@ -159,7 +173,17 @@ async function ccNetworkCheck(){
  const result={};
  const request=async(url)=>{const c=new AbortController();const t=setTimeout(()=>c.abort(),6500);try{const r=await fetch(url,{credentials:'omit',redirect:'error',cache:'no-store',referrerPolicy:'no-referrer',signal:c.signal});if(!r.ok)throw Error();return await r.json()}finally{clearTimeout(t)}};
  const echo=async(key,url)=>{result[key]={status:'failed'};try{let d=await request(url);result[key]={status:'observed',ip:d.ip}}catch{}};
- const stun=()=>new Promise(done=>{let pc;let finished=false;const finish=()=>{if(finished)return;finished=true;try{pc.close()}catch{};done()};result.stun={status:'failed'};try{pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],iceCandidatePoolSize:0});pc.createDataChannel('cc-diagnostic');pc.onicecandidate=e=>{if(e.candidate){const s=e.candidate.candidate.split(' ');if(s[7]==='srflx'){result.stun={status:'observed',mapped_ip:s[4]};finish()}}else finish()};pc.createOffer().then(o=>pc.setLocalDescription(o)).catch(finish);setTimeout(finish,6500)}catch{finish()}});
+ const stun=()=>new Promise(done=>{
+  let pc,finished=false;result.stun={status:'failed',candidates:[],gathering_complete:false};
+  const finish=(complete=false)=>{if(finished)return;finished=true;result.stun.gathering_complete=complete;
+   if(complete||result.stun.mapped_ip)result.stun.status='observed';try{pc.close()}catch{};done()};
+  try{pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.cloudflare.com:3478'}],iceCandidatePoolSize:0});pc.createDataChannel('cc-diagnostic');
+   pc.onicecandidate=e=>{if(finished)return;if(!e.candidate){finish(true);return}
+    const c=e.candidate,s=c.candidate.split(' '),address=c.address||s[4],type=c.type||s[7];
+    if(result.stun.candidates.length<32)result.stun.candidates.push({address,type});
+    if(type==='srflx')result.stun.mapped_ip=address};
+   pc.createOffer().then(o=>pc.setLocalDescription(o)).catch(()=>finish(false));setTimeout(()=>finish(false),6500)
+  }catch{finish(false)}});
  const dns=()=>new Promise(done=>{let ws;const nonce=crypto.getRandomValues(new Uint32Array(1))[0].toString(16);result.dns={status:'failed',resolver_ips:[],reason:'receiver_timeout',queries_started:0};let finished=false;const finish=()=>{if(finished)return;finished=true;try{ws.close()}catch{};done()};try{ws=new WebSocket('wss://ws.dnscheck.tools/watch/'+nonce);ws.onmessage=e=>{try{let d=JSON.parse(e.data);if(typeof d.qname==='string'&&d.qname.toLowerCase().includes(nonce+'-nxdomain.test.dnscheck.tools')&&typeof d.remoteIp==='string'){result.dns.resolver_ips.push(d.remoteIp);result.dns.status='observed';result.dns.reason='authoritative_observed'}}catch{}};ws.onopen=()=>{result.dns.reason='receiver_open_no_authoritative_event';result.dns.queries_started=1;fetch('https://a.'+nonce+'-nxdomain.test.dnscheck.tools/',{mode:'no-cors',credentials:'omit',redirect:'error',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(5000)}).catch(()=>{});setTimeout(finish,5500)};ws.onerror=()=>{result.dns.reason='websocket_unavailable';finish()};setTimeout(finish,7000)}catch{finish()}});
  const tls=async()=>{result.tls={status:'failed'};try{let d=await request('https://tls.peet.ws/api/all');result.tls={status:'observed',ja4:d.tls?.ja4,ja3_hash:d.tls?.ja3_hash,http_version:d.http_version,tls_version:d.tls?.tls_version_negotiated}}catch{}};
  await Promise.all([echo('ipv4','https://api4.ipify.org/?format=json'),echo('ipv6','https://api6.ipify.org/?format=json'),stun(),dns(),tls()]);return result;

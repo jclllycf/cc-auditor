@@ -42,6 +42,8 @@ def inspect_routes(runtime,discovery,allow_existing=False):
             summary={'id':config_id,'kernel':core,'file_kind':path.suffix if path else 'runtime_only_no_config_file','parser_partial':partial,
                 'activation':'candidate_unverified','capabilities':capabilities(core),'routes':[],'dns_strategy_present':bool(config.get('dns')),
                 'tun_configured':bool((config.get('tun') or {}).get('enable')) if isinstance(config.get('tun'),dict) else False}
+            from .effective_policy_v37 import snapshot as policy_snapshot
+            summary['effective_policy_v37']=policy_snapshot(config if path is not None else None)
             for target in TARGETS:summary['routes'].append(simulate_symbolic(config,target,alias))
             # A launch command can identify the file loaded at process startup,
             # but a running core might subsequently reload different content.
@@ -104,6 +106,7 @@ def inspect_routes(runtime,discovery,allow_existing=False):
                     # The API's ordered rule list avoids guessing partial YAML nodes / groups.
                     names={'Domain':'DOMAIN','DomainSuffix':'DOMAIN-SUFFIX','DomainKeyword':'DOMAIN-KEYWORD','ProcessName':'PROCESS-NAME','ProcessPath':'PROCESS-PATH','DstPort':'DST-PORT','Network':'NETWORK','RuleSet':'RULE-SET','GeoSite':'GEOSITE'}
                     runtime_settings=get('/configs');mode=runtime_settings.get('mode','unknown')
+                    summary['effective_policy_v37']=policy_snapshot(config if path is not None else None,runtime_settings)
                     api_config={'rules':[','.join([names.get(r.get('type'),str(r.get('type','UNSUPPORTED'))),str(r.get('payload','')),str(r.get('proxy','UNKNOWN'))]) if r.get('type') not in ('Match','MATCH') else 'MATCH,'+str(r.get('proxy','UNKNOWN')) for r in rules],
                         'mode':mode,'_runtime_chain_fields_incomplete':True}
                     summary['runtime_mode']=str(mode)[:24]
