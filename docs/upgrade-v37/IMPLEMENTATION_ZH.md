@@ -25,7 +25,7 @@
 REA 对这两个源文件作静态解析；没有启动 EnvGuardCC、执行保护脚本或接触账号。其它文件未在本轮全面审计。
 私人报告、IP、配置、截图和原始 REA 本机路径不复制进公开样例。
 
-- [现场脱敏资料](../field-study-20261031/README.md)
+- 原始现场复盘保留在本地项目中；本候选公开的是本文件的复用结论、下列任务规范和合成负例。
 - [Issue 4：测量与第三方分数](https://github.com/jclllycf/cc-auditor/issues/4)
 - [Issue 5：方案、审批、同视点复检与回滚](https://github.com/jclllycf/cc-auditor/issues/5)
 - [IANA IPv4 特殊用途注册表](https://www.iana.org/assignments/iana-ipv4-special-registry)
