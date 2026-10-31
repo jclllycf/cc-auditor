@@ -1,5 +1,7 @@
 # CC Auditor · Claude 使用前环境预检
 
+本分支为 **v3.7.0-dev1 证据诊断开发候选**，新增故障/环境特征/缺证分组、同视点对比与只读修复预案。源码用户可运行 `preview-v37.cmd` 查看完全离线合成演示；见 [v3.7 使用说明](docs/upgrade-v37/USAGE_ZH.md)。下方 Windows 下载仍对应现有 v3.6 预发布包，v3.7 尚未提供新的 Windows EXE。
+
 **建议的使用方式：让本机 Agent 调用 Skill + MCP Toolkit。** 不熟悉命令行也可以按逐步教程操作；没有 Agent 的用户仍可独立运行 Windows EXE。
 
 [推荐：Agent 完整新手教程](AGENT_QUICKSTART_ZH.md) · [Windows 安装](INSTALL_WINDOWS_ZH.md) · [MCP 配置](MCP_CONFIGURATION_ZH.md) · [英文](README.en.md) · [隐私](PRIVACY_ZH.md) · [支持范围](SUPPORT_MATRIX_ZH.md)

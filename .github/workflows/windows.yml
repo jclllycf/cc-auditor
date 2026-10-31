@@ -20,10 +20,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - run: python -m pip install -r requirements-build.txt
-      - name: Verify public source manifest and privacy boundary
-        run: python -B -m public_build.release_guard . --git-checkout
+      - name: Verify declared release or development source contract
+        run: python -B -m public_build.verify_ci
       - name: Offline regression tests (synthetic only)
         run: python -B -m public_build.run_tests
       - name: Actual stdio startup and synthetic PDF output
         run: python -B -m public_build.verify_product --synthetic-dir scratch/ci-synthetic
+      - name: v3.7 synthetic diagnostics and before-after comparison
+        run: python -B -m public_build.demo_v37

@@ -12,8 +12,9 @@ import sys
 
 from .release_guard import safe_name, reviewed_findings, exceptions, sha
 
-BASELINE = '6c4d7a2f153323248f7751853607e818695523be'
+BASELINE = '48780af8525c73e67b9502de115e6dc4caeabfc3'
 ADDITIONS = (
+    'AGENT_QUICKSTART_ZH.md',
     'cc_auditor/toolkit/address_semantics.py',
     'cc_auditor/toolkit/effective_policy_v37.py',
     'cc_auditor/toolkit/evidence_v37.py',
@@ -21,6 +22,8 @@ ADDITIONS = (
     'tests_toolkit/test_v37_evidence.py',
     'public_build/demo_v37.py',
     'public_build/verify_candidate_v37.py',
+    'public_build/verify_ci.py',
+    'public_build/test_ci.py',
     'docs/upgrade-v37/IMPLEMENTATION_ZH.md',
     'docs/upgrade-v37/USAGE_ZH.md',
     'docs/upgrade-v37/VALIDATION_ZH.md',
@@ -38,6 +41,9 @@ def verify(root):
     baseline = json.loads(old)
     names = sorted({r['path'] for r in baseline['files']} | set(ADDITIONS))
     allowed = set(names)
+    tracked = set(subprocess.run(['git','ls-files','-z'],cwd=root,check=True,capture_output=True).stdout.decode('utf-8').split('\0'))-{''}
+    if tracked-(allowed|{'public-manifest.json'}):
+        raise ValueError('unreviewed_tracked_candidate_member')
     for path in (root/'cc_auditor/toolkit').glob('*.py'):
         if path.relative_to(root).as_posix() not in allowed:
             raise ValueError('unlisted_candidate_module')
