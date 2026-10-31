@@ -1,5 +1,7 @@
 # CC Auditor · Windows 使用前环境预检
 
+本地开发分支现为 **v3.7.0-dev1 证据诊断候选**：加入故障/环境特征/缺证分组、特殊地址分类、同视点对照与只读修复预案。可直接运行根目录 `preview-v37.cmd` 查看完全离线合成演示；见 [v3.7 使用说明](docs/upgrade-v37/USAGE_ZH.md)。尚未替换或发布 v3.6 Windows 包，下文安装说明仍对应公开发行线。
+
 [English](README.en.md) · [安装说明](INSTALL_WINDOWS_ZH.md) · [Skill / MCP 配置](MCP_CONFIGURATION_ZH.md) · [隐私](PRIVACY_ZH.md) · [支持范围](SUPPORT_MATRIX_ZH.md)
 
 **先检查当前电脑，再决定是否开始安装和配置 Claude。** CC Auditor 面向尚未使用过 Claude 的普通 Windows 用户，检查系统、日常浏览器、代理规则和获准的中立网络测点，生成容易阅读的中文 PDF。

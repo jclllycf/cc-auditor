@@ -1,5 +1,7 @@
 # CC Auditor · Windows pre-use environment checks
 
+This local branch is **v3.7.0-dev1**, an evidence-diagnostics development candidate. It adds scoped findings, special-address classification, conservative snapshot comparisons and read-only remediation previews. Run `preview-v37.cmd` for a fully synthetic offline demo. The existing v3.6 Windows release and manifest have not been replaced; see [development usage](docs/upgrade-v37/USAGE_ZH.md).
+
 [简体中文](README.md) · [Windows installation, Chinese](INSTALL_WINDOWS_ZH.md) · [Skill / MCP configuration](MCP_CONFIGURATION_ZH.md) · [Privacy](PRIVACY_ZH.md)
 
 CC Auditor helps Windows users inspect their environment **before installing or using Claude**. It runs locally, asks for native user consent, checks relevant system, browser and proxy evidence, and produces Chinese PDF reports. Claude, Python, SDKs and a Claude account are not required.

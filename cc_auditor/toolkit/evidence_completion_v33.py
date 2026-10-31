@@ -4,7 +4,7 @@ from .zero_contact_guard import utc_now
 from . import fixed_risk_v33 as model
 
 def remaining_gaps(report,view=None):
-    view=view or (model.assess_v35(report) if str(report.get('version','')).startswith(('3.5','3.6')) else model.assess(report));out=[];trace=report.get('evidence_completion_v33',{}).get('attempts',[])
+    view=view or (model.assess_v35(report) if str(report.get('version','')).startswith(('3.5','3.6','3.7')) else model.assess(report));out=[];trace=report.get('evidence_completion_v33',{}).get('attempts',[])
     scopes=set(report.get('approval',{}).get('scopes',[]))
     for s in view['selected_surfaces']:
         for r in view['surface_assessments'][s]['ledger']:
@@ -47,7 +47,7 @@ def attach(report,program=None,paths=None,attempts=None,finalized=True):
             report['checks'].append({'id':'v33_path_'+key.replace(':','_'),'layer':'L12','title':'v3.3 路径关联 '+key,'state':'reference' if path.get('status')=='passed' else 'fault' if path.get('status')=='verified_fault' else 'partial','value':path,'criterion':'运行规则与已批准中立视点关联；不是 Claude 最终公网出口','points':0,'issue_id':'v33_path_'+key,'source':'runtime_rule_neutral_correlation','scope':key,'captured_at_utc':path.get('captured_at_utc',utc_now()),'reason':path['reason'],'evidence_id':'E'+str(len(report['checks'])+1).zfill(3),'next_step':'仅在已批准范围继续复核'})
     if attempts is not None:report['evidence_completion_v33']={'version':'3.4.preuse.loop.1','finalized':finalized,'budget_seconds':75,'per_source_retry_limit':1,'attempts':attempts,'cancelled':False}
     from .preflight_v3 import summarize
-    report['summary']=summarize(report);view=model.assess_v35(report) if str(report.get('version','')).startswith(('3.5','3.6')) else model.assess(report)
+    report['summary']=summarize(report);view=model.assess_v35(report) if str(report.get('version','')).startswith(('3.5','3.6','3.7')) else model.assess(report)
     if str(report.get('model_version','')).startswith('3.2'):
         report['historical_assessment_v32']={k:report[k] for k in ('model_version','surface_assessments','usage_scenarios','headline') if k in report}
     report['assessment_v33']=view;report.update(view);report['remaining_gaps_v33']=remaining_gaps(report,view)

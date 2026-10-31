@@ -74,7 +74,8 @@ class AuthorizationAndProfileSafety(unittest.TestCase):
         sid='e'*32;manifest={'source_build':core.source_build()};core.RUNS[sid]={'manifest':manifest,'profiles':{}}
         approved={'scan_id':sid,'source_build':manifest['source_build'],'scopes':['local_system','neutral_network'],'profiles':[]}
         with patch.object(core.BROKER,'approve_and_consume',return_value=approved),patch('cc_auditor.toolkit.local_environment.inspect_local_environment',side_effect=OSError('PRIVATE_TOKEN_PATH')),patch('cc_auditor.toolkit.local_environment.inspect_network_topology',return_value={'collector_state':'failed'}),patch.object(core.proxy_discovery,'discover',return_value=({'status':'failed','software':[]},None)),patch.object(net,'checks',side_effect=BrokenPipeError(109,'closed')),patch.object(core,'save',return_value={'json':'fixture'}) as save,patch('cc_auditor.toolkit.pdf_report_renderer.build_pdf_reports',return_value={'fixture':'fixture.pdf'}):
-            result=core.run(sid);r=save.call_args.args[0]
+            with patch('cc_auditor.toolkit.review_v37.export_review',return_value={'html':'fixture.html'}):
+                result=core.run(sid);r=save.call_args.args[0]
             self.assertEqual(result['status'],'completed_with_limitations');self.assertEqual(len(r['collector_errors']),2)
             self.assertNotIn('PRIVATE',json.dumps(r));self.assertNotEqual(next(c for c in r['checks'] if c['id']=='tls_bypass')['state'],'passed')
         del core.RUNS[sid]

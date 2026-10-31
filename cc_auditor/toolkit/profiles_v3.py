@@ -4,6 +4,8 @@ import configparser
 import os
 import re
 import secrets
+import hashlib
+import hmac
 import subprocess
 import threading
 import time
@@ -13,6 +15,14 @@ from ..collectors import file_version
 from ..storage import no_reparse
 from .browser_discovery import BROWSER_CATALOG,CHROMIUM_USER_DATA_PATHS
 from .zero_contact_guard import utc_now
+
+_PROFILE_SESSION_KEY=secrets.token_bytes(32)
+
+
+def profile_session_binding(executable, profile_path):
+    """Bound only within this collector process; never publish the input paths."""
+    material=(str(executable).casefold()+'\0'+str(profile_path).casefold()).encode('utf-8')
+    return hmac.new(_PROFILE_SESSION_KEY,material,hashlib.sha256).hexdigest()
 
 def discover():
     public=[];private={};seen=set();running={};running_roots={}
@@ -61,6 +71,7 @@ def discover():
             seen.add(str(path).casefold());key=entry['id']+'-profile-'+str(idx)
             row={'browser_id':entry['id'],'browser_name':entry['name'],'engine':entry['engine'],'version':file_version(found) or '',
                 'profile_key':key,'profile_alias':'日常档案 '+str(idx),'browser_running':str(found).casefold() in running,
+                'profile_session_binding':profile_session_binding(found,path),
                 'static_profile_checked':False,'dynamic_profile_checked':False,'actual_profile_verified':False,
                 'write_tests_performed':False,'rollback_status':'not_needed','cleanup_status':'not_performed'}
             public.append(row);private[key]={'public':row,'exe':found,'root':userroot,'path':path}
